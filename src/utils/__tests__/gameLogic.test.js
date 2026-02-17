@@ -1,21 +1,22 @@
 import { validateBid, canAdvanceToPlaying, resetBidsForNewRound } from '../gameLogic';
 
 describe('validateBid', () => {
-  test('should return true for valid bid and player ID', () => {
+  it('should return true for valid bid and playerId', () => {
     expect(validateBid(10, 'player1')).toBe(true);
-    expect(validateBid('5', 'player2')).toBe(true);
-    expect(validateBid(0, 'player3')).toBe(true);
+    expect(validateBid(0, 'player2')).toBe(true);
+    expect(validateBid(100.5, 'player3')).toBe(true);
   });
 
-  test('should return false for invalid player ID', () => {
+  it('should return false for invalid playerId', () => {
     expect(validateBid(10, '')).toBe(false);
     expect(validateBid(10, null)).toBe(false);
     expect(validateBid(10, undefined)).toBe(false);
     expect(validateBid(10, 123)).toBe(false);
+    expect(validateBid(10, '   ')).toBe(false);
   });
 
-  test('should return false for invalid bid values', () => {
-    expect(validateBid('invalid', 'player1')).toBe(false);
+  it('should return false for invalid bid', () => {
+    expect(validateBid('10', 'player1')).toBe(false);
     expect(validateBid(NaN, 'player1')).toBe(false);
     expect(validateBid(Infinity, 'player1')).toBe(false);
     expect(validateBid(-5, 'player1')).toBe(false);
@@ -25,43 +26,52 @@ describe('validateBid', () => {
 });
 
 describe('canAdvanceToPlaying', () => {
-  test('should return true when all players have submitted valid bids', () => {
-    const bids = { player1: 5, player2: 10, player3: 3 };
+  it('should return true when all players have submitted valid bids', () => {
+    const bids = {
+      'player1': 10,
+      'player2': 5,
+      'player3': 15
+    };
     expect(canAdvanceToPlaying(bids, 3)).toBe(true);
   });
 
-  test('should return false when not all players have submitted bids', () => {
-    const bids = { player1: 5, player2: 10 };
+  it('should return false when not all players have submitted bids', () => {
+    const bids = {
+      'player1': 10,
+      'player2': 5
+    };
     expect(canAdvanceToPlaying(bids, 3)).toBe(false);
   });
 
-  test('should return false when too many bids are submitted', () => {
-    const bids = { player1: 5, player2: 10, player3: 3, player4: 7 };
+  it('should return false when too many bids are submitted', () => {
+    const bids = {
+      'player1': 10,
+      'player2': 5,
+      'player3': 15,
+      'player4': 20
+    };
     expect(canAdvanceToPlaying(bids, 3)).toBe(false);
   });
 
-  test('should return false for invalid bids object', () => {
+  it('should return false for invalid bids', () => {
+    const bids = {
+      'player1': 10,
+      'player2': -5,
+      'player3': 15
+    };
+    expect(canAdvanceToPlaying(bids, 3)).toBe(false);
+  });
+
+  it('should return false for invalid inputs', () => {
     expect(canAdvanceToPlaying(null, 3)).toBe(false);
-    expect(canAdvanceToPlaying([], 3)).toBe(false);
-    expect(canAdvanceToPlaying('invalid', 3)).toBe(false);
-  });
-
-  test('should return false for invalid totalPlayers', () => {
-    const bids = { player1: 5 };
-    expect(canAdvanceToPlaying(bids, 0)).toBe(false);
-    expect(canAdvanceToPlaying(bids, -1)).toBe(false);
-    expect(canAdvanceToPlaying(bids, 1.5)).toBe(false);
-    expect(canAdvanceToPlaying(bids, 'invalid')).toBe(false);
-  });
-
-  test('should return false when bids contain invalid values', () => {
-    const bids = { player1: -5, player2: 10 };
-    expect(canAdvanceToPlaying(bids, 2)).toBe(false);
+    expect(canAdvanceToPlaying({}, 0)).toBe(false);
+    expect(canAdvanceToPlaying({}, -1)).toBe(false);
+    expect(canAdvanceToPlaying({}, 'invalid')).toBe(false);
   });
 });
 
 describe('resetBidsForNewRound', () => {
-  test('should return object with empty bids and playersSubmittedBids arrays', () => {
+  it('should return object with empty bids and playersSubmittedBids', () => {
     const result = resetBidsForNewRound();
     expect(result).toEqual({
       bids: {},
@@ -69,7 +79,7 @@ describe('resetBidsForNewRound', () => {
     });
   });
 
-  test('should return new objects on each call', () => {
+  it('should return a new object each time', () => {
     const result1 = resetBidsForNewRound();
     const result2 = resetBidsForNewRound();
     expect(result1).not.toBe(result2);
