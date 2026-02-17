@@ -1,170 +1,181 @@
 import React, { useState, useEffect } from 'react';
 import BiddingPhase from './BiddingPhase';
-import './Game.css';
+import Score from './Score';
+import Hand from './Hand';
+import Trick from './Trick';
+import GameOver from './GameOver';
 
 const Game = () => {
   const [gameState, setGameState] = useState({
-    phase: 'bidding', // 'bidding', 'playing', 'scoring'
+    phase: 'bidding', // 'bidding', 'playing', 'gameOver'
     round: 1,
     players: [
-      { id: 1, name: 'Player 1', score: 0, bid: null, tricks: 0 },
-      { id: 2, name: 'Player 2', score: 0, bid: null, tricks: 0 },
-      { id: 3, name: 'Player 3', score: 0, bid: null, tricks: 0 },
-      { id: 4, name: 'Player 4', score: 0, bid: null, tricks: 0 }
+      { id: 1, name: 'Player 1', hand: [], score: 0, bid: null, tricks: 0 },
+      { id: 2, name: 'Player 2', hand: [], score: 0, bid: null, tricks: 0 },
+      { id: 3, name: 'Player 3', hand: [], score: 0, bid: null, tricks: 0 },
+      { id: 4, name: 'Player 4', hand: [], score: 0, bid: null, tricks: 0 }
     ],
-    dealer: 0,
     currentPlayer: 1,
     trump: null,
-    cards: [],
     currentTrick: [],
-    roundsToPlay: 10
+    completedTricks: [],
+    deck: []
   });
 
-  const [bidsCollected, setBidsCollected] = useState(0);
-
-  // Initialize new round
-  const initializeRound = () => {
-    setGameState(prevState => ({
-      ...prevState,
-      phase: 'bidding',
-      players: prevState.players.map(player => ({
-        ...player,
-        bid: null,
-        tricks: 0
-      })),
-      currentTrick: [],
-      trump: null
-    }));
-    setBidsCollected(0);
-  };
-
-  // Handle bid submission from BiddingPhase
-  const handleBidSubmitted = (playerId, bidAmount) => {
-    setGameState(prevState => {
-      const updatedPlayers = prevState.players.map(player => 
-        player.id === playerId 
-          ? { ...player, bid: bidAmount }
-          : player
-      );
-      
-      return {
-        ...prevState,
-        players: updatedPlayers
-      };
+  // Initialize deck
+  useEffect(() => {
+    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+    const ranks = ['7', '8', '9', 'J', 'Q', 'K', '10', 'A'];
+    const newDeck = [];
+    
+    suits.forEach(suit => {
+      ranks.forEach(rank => {
+        newDeck.push({ suit, rank, id: `${suit}-${rank}` });
+      });
     });
     
-    setBidsCollected(prev => prev + 1);
+    setGameState(prev => ({ ...prev, deck: shuffleDeck(newDeck) }));
+  }, []);
+
+  const shuffleDeck = (deck) => {
+    const shuffled = [...deck];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   };
 
-  // Check if all bids are collected and transition to playing phase
-  useEffect(() => {
-    if (bidsCollected === gameState.players.length && gameState.phase === 'bidding') {
-      // All bids collected, transition to playing phase
-      setTimeout(() => {
-        setGameState(prevState => ({
-          ...prevState,
-          phase: 'playing'
-        }));
-      }, 1000); // Small delay for UX
-    }
-  }, [bidsCollected, gameState.players.length, gameState.phase]);
-
-  // Start new round
-  const startNewRound = () => {
-    if (gameState.round < gameState.roundsToPlay) {
-      setGameState(prevState => ({
-        ...prevState,
-        round: prevState.round + 1,
-        dealer: (prevState.dealer + 1) % prevState.players.length
-      }));
-      initializeRound();
-    }
-  };
-
-  // Mock card dealing (placeholder for actual card logic)
   const dealCards = () => {
-    // This would normally deal actual cards based on round number
     const cardsPerPlayer = gameState.round;
-    console.log(`Dealing ${cardsPerPlayer} cards to each player for round ${gameState.round}`);
+    const newPlayers = [...gameState.players];
+    let deckIndex = 0;
+    
+    // Deal cards to each player
+    newPlayers.forEach(player => {
+      player.hand = gameState.deck.slice(deckIndex, deckIndex + cardsPerPlayer);
+      deckIndex += cardsPerPlayer;
+    });
+    
+    // Set trump card
+    const trumpCard = gameState.deck[deckIndex];
+    
+    setGameState(prev => ({
+      ...prev,
+      players: newPlayers,
+      trump: trumpCard?.suit || 'spades'
+    }));
   };
 
-  // Effect to deal cards when entering playing phase
-  useEffect(() => {
-    if (gameState.phase === 'playing') {
-      dealCards();
+  const handleBidSubmit = (playerId, bidAmount) => {
+    const newPlayers = gameState.players.map(player => 
+      player.id === playerId ? { ...player, bid: bidAmount } : player
+    );
+    
+    setGameState(prev => ({ ...prev, players: newPlayers }));
+    
+    // Check if all players have bid
+    const allBidsPlaced = newPlayers.every(player => player.bid !== null);
+    if (allBidsPlaced) {
+      // Deal cards and transition to playing phase
+      setTimeout(() => {
+        dealCards();
+        setGameState(prev => ({ ...prev, phase: 'playing' }));
+      }, 500);
     }
-  }, [gameState.phase]);
-
-  const renderBiddingPhase = () => {
-    return (
-      <BiddingPhase
-        round={gameState.round}
-        players={gameState.players}
-        dealer={gameState.dealer}
-        onBidSubmitted={handleBidSubmitted}
-        cardsInHand={gameState.round} // In Skull King, cards dealt equals round number
-      />
-    );
   };
 
-  const renderPlayingPhase = () => {
-    return (
-      <div className="playing-phase">
-        <h2>Playing Phase - Round {gameState.round}</h2>
-        <div className="game-info">
-          <p>Trump: {gameState.trump || 'None'}</p>
-          <p>Current Player: {gameState.players[gameState.currentPlayer - 1]?.name}</p>
-        </div>
-        
-        <div className="players-info">
-          {gameState.players.map(player => (
-            <div key={player.id} className="player-info">
-              <h3>{player.name}</h3>
-              <p>Bid: {player.bid}</p>
-              <p>Tricks: {player.tricks}</p>
-              <p>Score: {player.score}</p>
-            </div>
-          ))}
-        </div>
-        
-        <div className="game-controls">
-          <button onClick={startNewRound} disabled={gameState.round >= gameState.roundsToPlay}>
-            Next Round
-          </button>
-        </div>
-      </div>
-    );
+  const startRound = () => {
+    // Reset bids and tricks for new round
+    const newPlayers = gameState.players.map(player => ({
+      ...player,
+      bid: null,
+      tricks: 0,
+      hand: []
+    }));
+    
+    setGameState(prev => ({
+      ...prev,
+      players: newPlayers,
+      phase: 'bidding',
+      currentTrick: [],
+      completedTricks: []
+    }));
   };
 
-  const renderScoringPhase = () => {
-    return (
-      <div className="scoring-phase">
-        <h2>Scoring Phase - Round {gameState.round}</h2>
-        <p>Calculating scores...</p>
-      </div>
-    );
+  const playCard = (card) => {
+    // Implementation for card play logic
+    console.log('Card played:', card);
+  };
+
+  const nextRound = () => {
+    if (gameState.round >= 10) {
+      setGameState(prev => ({ ...prev, phase: 'gameOver' }));
+    } else {
+      setGameState(prev => ({ ...prev, round: prev.round + 1 }));
+      startRound();
+    }
+  };
+
+  const resetGame = () => {
+    setGameState({
+      phase: 'bidding',
+      round: 1,
+      players: [
+        { id: 1, name: 'Player 1', hand: [], score: 0, bid: null, tricks: 0 },
+        { id: 2, name: 'Player 2', hand: [], score: 0, bid: null, tricks: 0 },
+        { id: 3, name: 'Player 3', hand: [], score: 0, bid: null, tricks: 0 },
+        { id: 4, name: 'Player 4', hand: [], score: 0, bid: null, tricks: 0 }
+      ],
+      currentPlayer: 1,
+      trump: null,
+      currentTrick: [],
+      completedTricks: [],
+      deck: []
+    });
   };
 
   return (
-    <div className="game-container">
-      <header className="game-header">
-        <h1>Skull King - Round {gameState.round}</h1>
-        <div className="game-status">
-          <span className={`phase-indicator ${gameState.phase}`}>
-            {gameState.phase.toUpperCase()}
-          </span>
+    <div className="game">
+      <Score players={gameState.players} round={gameState.round} />
+      
+      {gameState.phase === 'bidding' && (
+        <BiddingPhase
+          players={gameState.players}
+          round={gameState.round}
+          onBidSubmit={handleBidSubmit}
+        />
+      )}
+      
+      {gameState.phase === 'playing' && (
+        <div className="playing-phase">
+          <div className="trump-info">
+            Trump: {gameState.trump}
+          </div>
+          
+          <Trick 
+            currentTrick={gameState.currentTrick}
+            trump={gameState.trump}
+          />
+          
+          <Hand 
+            cards={gameState.players.find(p => p.id === 1)?.hand || []}
+            onCardPlay={playCard}
+            canPlay={gameState.currentPlayer === 1}
+          />
+          
+          <div className="game-controls">
+            <button onClick={nextRound}>Next Round</button>
+          </div>
         </div>
-      </header>
+      )}
       
-      <main className="game-content">
-        {gameState.phase === 'bidding' && renderBiddingPhase()}
-        {gameState.phase === 'playing' && renderPlayingPhase()}
-        {gameState.phase === 'scoring' && renderScoringPhase()}
-      </main>
-      
-      <div className="game-debug" style={{ marginTop: '20px', fontSize: '12px', opacity: 0.7 }}>
-        <p>Debug: Phase={gameState.phase}, Bids Collected={bidsCollected}/{gameState.players.length}</p>
-      </div>
+      {gameState.phase === 'gameOver' && (
+        <GameOver 
+          players={gameState.players}
+          onRestart={resetGame}
+        />
+      )}
     </div>
   );
 };
