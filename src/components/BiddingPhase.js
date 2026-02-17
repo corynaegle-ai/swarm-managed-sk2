@@ -1,102 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './BiddingPhase.css';
 
-const BiddingPhase = ({ round, players, onBidsSubmit }) => {
+const BiddingPhase = ({ players, onBidsSubmit, currentRound = 1 }) => {
   const [bids, setBids] = useState({});
   const [errors, setErrors] = useState({});
 
-  // Initialize bids state when players change
-  useEffect(() => {
-    if (players) {
-      const initialBids = {};
-      players.forEach(player => {
-        initialBids[player.id] = '';
-      });
-      setBids(initialBids);
-    }
-  }, [players]);
-
   const handleBidChange = (playerId, value) => {
-    setBids(prev => ({
-      ...prev,
-      [playerId]: value
-    }));
-
+    const numericValue = value === '' ? '' : Number(value);
+    setBids(prev => ({ ...prev, [playerId]: numericValue }));
+    
     // Clear error when user starts typing
     if (errors[playerId]) {
-      setErrors(prev => ({
-        ...prev,
-        [playerId]: ''
-      }));
+      setErrors(prev => ({ ...prev, [playerId]: null }));
     }
-  };
-
-  const isValidBid = (bid) => {
-    const numBid = parseInt(bid);
-    return bid !== '' && !isNaN(numBid) && numBid >= 0;
   };
 
   const isFormValid = () => {
     if (!players || players.length === 0) return false;
     
-    return players.every(player => {
+    for (const player of players) {
       const bid = bids[player.id];
-      return isValidBid(bid);
-    });
+      if (bid === undefined || bid === null || bid === '' || isNaN(bid) || bid < 0) {
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validate all bids before submission
-    const newErrors = {};
-    let hasErrors = false;
-
-    players.forEach(player => {
-      const bid = bids[player.id];
-      if (!isValidBid(bid)) {
-        newErrors[player.id] = 'Please enter a valid bid (0 or greater)';
-        hasErrors = true;
-      }
-    });
-
-    setErrors(newErrors);
-
-    if (!hasErrors && isFormValid()) {
-      // Convert bids to numbers and call callback
-      const numericBids = {};
-      Object.keys(bids).forEach(playerId => {
-        numericBids[playerId] = parseInt(bids[playerId]);
-      });
-      onBidsSubmit(numericBids);
+    if (isFormValid() && onBidsSubmit) {
+      onBidsSubmit(bids);
     }
   };
 
   if (!players || players.length === 0) {
-    return (
-      <div className="bidding-phase-container">
-        <p>No players available for bidding.</p>
-      </div>
-    );
+    return <div className="bidding-phase-container">No players available</div>;
   }
 
   return (
     <div className="bidding-phase-container">
-      <h2 className="round-title">Round {round} - Place Your Bids</h2>
-      
+      <h2 className="round-display">Round {currentRound} - Place Your Bids</h2>
       <form onSubmit={handleSubmit} className="bidding-form">
         {players.map(player => (
           <div key={player.id} className="bid-input-group">
-            <label htmlFor={`bid-${player.id}`} className="bid-label">
+            <label className="bid-label" htmlFor={`bid-${player.id}`}>
               {player.name}:
             </label>
             <input
               id={`bid-${player.id}`}
               type="number"
               min="0"
+              step="1"
               value={bids[player.id] || ''}
               onChange={(e) => handleBidChange(player.id, e.target.value)}
-              className={`bid-input ${errors[player.id] ? 'bid-input-error' : ''}`}
+              className={`bid-input ${errors[player.id] ? 'error' : ''}`}
               placeholder="Enter bid"
             />
             {errors[player.id] && (
@@ -104,11 +62,10 @@ const BiddingPhase = ({ round, players, onBidsSubmit }) => {
             )}
           </div>
         ))}
-        
-        <button
-          type="submit"
+        <button 
+          type="submit" 
+          className="submit-button"
           disabled={!isFormValid()}
-          className={`submit-button ${!isFormValid() ? 'submit-button-disabled' : ''}`}
         >
           Submit Bids
         </button>
