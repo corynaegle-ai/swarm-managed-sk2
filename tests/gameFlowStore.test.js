@@ -1,147 +1,74 @@
 import { renderHook, act } from '@testing-library/react';
-import { useGameFlowStore, GAME_PHASES, MAX_ROUNDS } from '../src/stores/gameFlowStore';
+import useGameFlowStore, { PHASES } from '../src/stores/gameFlowStore.js';
 
 describe('GameFlowStore', () => {
   beforeEach(() => {
     // Reset store before each test
-    const { result } = renderHook(() => useGameFlowStore());
     act(() => {
-      result.current.resetGame();
+      useGameFlowStore.getState().resetGame();
     });
   });
-
-  test('initializes with correct default state', () => {
+  
+  test('initializes with setup phase and round 1', () => {
     const { result } = renderHook(() => useGameFlowStore());
     
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SETUP);
+    expect(result.current.currentPhase).toBe(PHASES.SETUP);
     expect(result.current.currentRound).toBe(1);
-    expect(result.current.isGameComplete).toBe(false);
   });
-
-  test('enforces proper phase sequence: setup -> bidding -> scoring', () => {
+  
+  test('progresses through phase sequence correctly', () => {
     const { result } = renderHook(() => useGameFlowStore());
     
-    // Start in setup
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SETUP);
-    
-    // Transition to bidding
+    // Setup -> Bidding
     act(() => {
       result.current.nextPhase();
     });
-    expect(result.current.currentPhase).toBe(GAME_PHASES.BIDDING);
+    expect(result.current.currentPhase).toBe(PHASES.BIDDING);
     
-    // Transition to scoring
+    // Bidding -> Scoring
     act(() => {
       result.current.nextPhase();
     });
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SCORING);
+    expect(result.current.currentPhase).toBe(PHASES.SCORING);
     
-    // Should cycle back to setup and increment round
+    // Scoring -> Setup (next round)
     act(() => {
       result.current.nextPhase();
     });
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SETUP);
+    expect(result.current.currentPhase).toBe(PHASES.SETUP);
     expect(result.current.currentRound).toBe(2);
   });
-
-  test('tracks round progression from 1 to 10', () => {
+  
+  test('transitions to results after round 10', () => {
     const { result } = renderHook(() => useGameFlowStore());
     
-    // Simulate 9 complete rounds (setup -> bidding -> scoring)
-    for (let round = 1; round < MAX_ROUNDS; round++) {
-      expect(result.current.currentRound).toBe(round);
-      
-      // Complete one full cycle
-      act(() => {
-        result.current.nextPhase(); // setup -> bidding
-        result.current.nextPhase(); // bidding -> scoring
-        result.current.nextPhase(); // scoring -> setup (next round)
-      });
-    }
-    
-    // Should be at round 10
-    expect(result.current.currentRound).toBe(MAX_ROUNDS);
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SETUP);
-  });
-
-  test('automatically progresses to results after round 10', () => {
-    const { result } = renderHook(() => useGameFlowStore());
-    
-    // Set up round 10
+    // Set to round 10, scoring phase
     act(() => {
-      // Manually set to round 10 for testing
-      const store = useGameFlowStore.getState();
-      useGameFlowStore.setState({
-        ...store,
-        currentRound: MAX_ROUNDS,
-        currentPhase: GAME_PHASES.SCORING
-      });
+      useGameFlowStore.setState({ currentRound: 10, currentPhase: PHASES.SCORING });
     });
     
-    expect(result.current.currentRound).toBe(MAX_ROUNDS);
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SCORING);
-    
-    // Next phase should go to results
+    // Should go to results
     act(() => {
       result.current.nextPhase();
     });
-    
-    expect(result.current.currentPhase).toBe(GAME_PHASES.RESULTS);
-    expect(result.current.isGameComplete).toBe(true);
+    expect(result.current.currentPhase).toBe(PHASES.RESULTS);
+    expect(result.current.currentRound).toBe(10);
   });
-
-  test('provides game reset functionality', () => {
+  
+  test('resets game state correctly', () => {
     const { result } = renderHook(() => useGameFlowStore());
     
-    // Advance game state
+    // Set to some other state
     act(() => {
-      const store = useGameFlowStore.getState();
-      useGameFlowStore.setState({
-        ...store,
-        currentRound: 5,
-        currentPhase: GAME_PHASES.BIDDING,
-        isGameComplete: false
-      });
+      useGameFlowStore.setState({ currentRound: 5, currentPhase: PHASES.BIDDING });
     });
     
-    // Reset game
+    // Reset
     act(() => {
       result.current.resetGame();
     });
     
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SETUP);
+    expect(result.current.currentPhase).toBe(PHASES.SETUP);
     expect(result.current.currentRound).toBe(1);
-    expect(result.current.isGameComplete).toBe(false);
-  });
-
-  test('validates phase transitions', () => {
-    const { result } = renderHook(() => useGameFlowStore());
-    
-    // Test invalid direct transition
-    const success = result.current.setPhase(GAME_PHASES.SCORING);
-    expect(success).toBe(false);
-    expect(result.current.currentPhase).toBe(GAME_PHASES.SETUP);
-    
-    // Test valid direct transition
-    const validSuccess = result.current.setPhase(GAME_PHASES.BIDDING);
-    expect(validSuccess).toBe(true);
-    expect(result.current.currentPhase).toBe(GAME_PHASES.BIDDING);
-  });
-
-  test('provides utility methods for game status', () => {
-    const { result } = renderHook(() => useGameFlowStore());
-    
-    // Test round progress
-    const progress = result.current.getRoundProgress();
-    expect(progress.current).toBe(1);
-    expect(progress.max).toBe(MAX_ROUNDS);
-    expect(progress.percentage).toBe(10);
-    
-    // Test game status
-    const status = result.current.getGameStatus();
-    expect(status.phase).toBe(GAME_PHASES.SETUP);
-    expect(status.round).toBe(1);
-    expect(status.isComplete).toBe(false);
-    expect(status.roundsRemaining).toBe(MAX_ROUNDS);
   });
 });

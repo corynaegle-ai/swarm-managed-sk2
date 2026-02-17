@@ -1,145 +1,121 @@
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
+import { devtools } from 'zustand/middleware';
 
-// Game phases enum
-export const GAME_PHASES = {
+// Define game phases
+const PHASES = {
   SETUP: 'setup',
-  BIDDING: 'bidding',
+  BIDDING: 'bidding', 
   SCORING: 'scoring',
   RESULTS: 'results'
 };
 
-// Valid phase transitions
+// Define phase transitions
 const PHASE_TRANSITIONS = {
-  [GAME_PHASES.SETUP]: [GAME_PHASES.BIDDING],
-  [GAME_PHASES.BIDDING]: [GAME_PHASES.SCORING],
-  [GAME_PHASES.SCORING]: [GAME_PHASES.SETUP, GAME_PHASES.RESULTS],
-  [GAME_PHASES.RESULTS]: [GAME_PHASES.SETUP]
+  [PHASES.SETUP]: PHASES.BIDDING,
+  [PHASES.BIDDING]: PHASES.SCORING,
+  [PHASES.SCORING]: PHASES.SETUP // or RESULTS if round 10
 };
 
 const MAX_ROUNDS = 10;
 
-export const useGameFlowStore = create(
-  subscribeWithSelector((set, get) => ({
-    // Game state
-    currentPhase: GAME_PHASES.SETUP,
+const useGameFlowStore = create()(devtools(
+  (set, get) => ({
+    // State
+    currentPhase: PHASES.SETUP,
     currentRound: 1,
-    isGameComplete: false,
-
+    
     // Actions
     nextPhase: () => {
-      const state = get();
-      const { currentPhase, currentRound } = state;
-
-      // Validate transition is allowed
-      const allowedTransitions = PHASE_TRANSITIONS[currentPhase];
-      if (!allowedTransitions || allowedTransitions.length === 0) {
-        console.warn(`No valid transitions from phase: ${currentPhase}`);
+      const { currentPhase, currentRound } = get();
+      
+      // Validate current phase exists in transitions
+      if (!PHASE_TRANSITIONS[currentPhase]) {
+        console.error(`Invalid phase transition from ${currentPhase}`);
         return;
       }
-
-      let nextPhase;
-      let nextRound = currentRound;
-      let isGameComplete = false;
-
-      switch (currentPhase) {
-        case GAME_PHASES.SETUP:
-          nextPhase = GAME_PHASES.BIDDING;
-          break;
-
-        case GAME_PHASES.BIDDING:
-          nextPhase = GAME_PHASES.SCORING;
-          break;
-
-        case GAME_PHASES.SCORING:
-          if (currentRound >= MAX_ROUNDS) {
-            // Game is complete, go to results
-            nextPhase = GAME_PHASES.RESULTS;
-            isGameComplete = true;
-          } else {
-            // Continue to next round
-            nextPhase = GAME_PHASES.SETUP;
-            nextRound = currentRound + 1;
-          }
-          break;
-
-        case GAME_PHASES.RESULTS:
-          // From results, can only reset game
-          nextPhase = GAME_PHASES.SETUP;
-          nextRound = 1;
-          isGameComplete = false;
-          break;
-
-        default:
-          console.error(`Unknown phase: ${currentPhase}`);
+      
+      // Special handling for scoring phase
+      if (currentPhase === PHASES.SCORING) {
+        if (currentRound >= MAX_ROUNDS) {
+          // Game complete - go to results
+          set({ currentPhase: PHASES.RESULTS });
+        } else {
+          // Next round - go to setup and increment round
+          set({ 
+            currentPhase: PHASES.SETUP,
+            currentRound: currentRound + 1
+          });
+        }
+      } else {
+        // Normal phase transition
+        const nextPhase = PHASE_TRANSITIONS[currentPhase];
+        set({ currentPhase: nextPhase });
+      }
+    },
+    
+    goToPhase: (phase) => {
+      // Validate phase
+      if (!Object.values(PHASES).includes(phase)) {
+        console.error(`Invalid phase: ${phase}`);
+        return;
+      }
+      
+      const { currentPhase } = get();
+      
+      // Enforce proper sequence - only allow going to next valid phase
+      const allowedNextPhase = PHASE_TRANSITIONS[currentPhase];
+      
+      if (currentPhase === PHASES.SCORING && get().currentRound >= MAX_ROUNDS) {
+        // From scoring on final round, only allow results
+        if (phase !== PHASES.RESULTS) {
+          console.error(`Can only go to results phase after round ${MAX_ROUNDS}`);
           return;
-      }
-
-      // Validate the calculated next phase is allowed
-      if (!allowedTransitions.includes(nextPhase)) {
-        console.error(`Invalid phase transition from ${currentPhase} to ${nextPhase}`);
+        }
+      } else if (phase !== allowedNextPhase) {
+        console.error(`Invalid phase transition from ${currentPhase} to ${phase}`);
         return;
       }
-
-      set({
-        currentPhase: nextPhase,
-        currentRound: nextRound,
-        isGameComplete: isGameComplete
+      
+      set({ currentPhase: phase });
+    },
+    
+    resetGame: () => {
+      set({ 
+        currentPhase: PHASES.SETUP,
+        currentRound: 1
       });
     },
-
-    // Direct phase setter with validation
-    setPhase: (targetPhase) => {
-      const state = get();
-      const { currentPhase } = state;
-
-      // Check if transition is valid
-      const allowedTransitions = PHASE_TRANSITIONS[currentPhase];
-      if (!allowedTransitions || !allowedTransitions.includes(targetPhase)) {
-        console.error(`Invalid phase transition from ${currentPhase} to ${targetPhase}`);
-        return false;
+    
+    // Getters
+    isGameComplete: () => {
+      const { currentPhase, currentRound } = get();
+      return currentPhase === PHASES.RESULTS || currentRound > MAX_ROUNDS;
+    },
+    
+    canTransitionToNext: () => {
+      const { currentPhase, currentRound } = get();
+      
+      if (currentPhase === PHASES.RESULTS) {
+        return false; // Game is complete
       }
-
-      set({ currentPhase: targetPhase });
+      
       return true;
     },
-
-    // Reset game to initial state
-    resetGame: () => {
-      set({
-        currentPhase: GAME_PHASES.SETUP,
-        currentRound: 1,
-        isGameComplete: false
-      });
-    },
-
-    // Utility getters
-    canTransitionTo: (targetPhase) => {
-      const state = get();
-      const allowedTransitions = PHASE_TRANSITIONS[state.currentPhase];
-      return allowedTransitions && allowedTransitions.includes(targetPhase);
-    },
-
+    
     getRoundProgress: () => {
-      const state = get();
+      const { currentRound } = get();
       return {
-        current: state.currentRound,
-        max: MAX_ROUNDS,
-        percentage: Math.round((state.currentRound / MAX_ROUNDS) * 100)
-      };
-    },
-
-    getGameStatus: () => {
-      const state = get();
-      return {
-        phase: state.currentPhase,
-        round: state.currentRound,
-        isComplete: state.isGameComplete,
-        roundsRemaining: MAX_ROUNDS - state.currentRound + 1
+        current: currentRound,
+        total: MAX_ROUNDS,
+        percentage: (currentRound / MAX_ROUNDS) * 100
       };
     }
-  }))
-);
+  }),
+  {
+    name: 'game-flow-store'
+  }
+));
 
-// Export constants for use in components
-export { MAX_ROUNDS };
+// Export phases constant for use in components
+export { PHASES };
+export default useGameFlowStore;
