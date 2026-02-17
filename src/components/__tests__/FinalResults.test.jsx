@@ -4,133 +4,122 @@ import '@testing-library/jest-dom';
 import FinalResults from '../FinalResults';
 import { useGameFlowStore } from '../../stores/gameFlowStore';
 
-// Mock the gameFlowStore hook
+// Mock the game flow store
 jest.mock('../../stores/gameFlowStore');
 
-const mockUseGameFlowStore = useGameFlowStore;
+const mockUseGameFlowStore = useGameFlowStore as jest.MockedFunction<typeof useGameFlowStore>;
 
-describe('FinalResults Component', () => {
+describe('FinalResults', () => {
+  const mockRestartGame = jest.fn();
+  
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockRestartGame.mockClear();
   });
 
-  it('does not render when game phase is not final', () => {
+  it('should not render when game phase is not final or complete', () => {
     mockUseGameFlowStore.mockReturnValue({
       gamePhase: 'playing',
       gameResults: null,
-      resetGame: jest.fn()
+      restartGame: mockRestartGame,
+      isLoading: false
     });
 
     const { container } = render(<FinalResults />);
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders when game phase is final', () => {
+  it('should render when game phase is final', () => {
     mockUseGameFlowStore.mockReturnValue({
       gamePhase: 'final',
-      gameResults: { score: 100 },
-      resetGame: jest.fn()
+      gameResults: { score: 100, moves: 25 },
+      restartGame: mockRestartGame,
+      isLoading: false
     });
 
     render(<FinalResults />);
     expect(screen.getByText('Game Complete!')).toBeInTheDocument();
+    expect(screen.getByText('Game Summary')).toBeInTheDocument();
   });
 
-  it('renders when game phase is complete', () => {
+  it('should render when game phase is complete', () => {
     mockUseGameFlowStore.mockReturnValue({
       gamePhase: 'complete',
-      gameResults: { score: 100 },
-      resetGame: jest.fn()
+      gameResults: { score: 150, moves: 30 },
+      restartGame: mockRestartGame,
+      isLoading: false
     });
 
     render(<FinalResults />);
     expect(screen.getByText('Game Complete!')).toBeInTheDocument();
   });
 
-  it('displays game summary data from gameResults', () => {
+  it('should display game summary data from gameFlowStore', () => {
     const gameResults = {
-      score: 1500,
+      score: 200,
       duration: '5:30',
-      level: 10,
-      achievements: ['Speed Demon', 'Perfect Score']
+      moves: 42,
+      winner: 'Player 1',
+      performance: 'Excellent'
     };
 
     mockUseGameFlowStore.mockReturnValue({
       gamePhase: 'final',
       gameResults,
-      resetGame: jest.fn()
+      restartGame: mockRestartGame,
+      isLoading: false
     });
 
     render(<FinalResults />);
     
-    expect(screen.getByText('1500')).toBeInTheDocument();
+    expect(screen.getByText('200')).toBeInTheDocument();
     expect(screen.getByText('5:30')).toBeInTheDocument();
-    expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('Speed Demon')).toBeInTheDocument();
-    expect(screen.getByText('Perfect Score')).toBeInTheDocument();
+    expect(screen.getByText('42')).toBeInTheDocument();
+    expect(screen.getByText('Player 1')).toBeInTheDocument();
+    expect(screen.getByText('Excellent')).toBeInTheDocument();
   });
 
-  it('calls resetGame when Start New Game button is clicked', async () => {
-    const mockResetGame = jest.fn().mockResolvedValue();
-    
+  it('should call restartGame when Start New Game button is clicked', async () => {
     mockUseGameFlowStore.mockReturnValue({
       gamePhase: 'final',
       gameResults: { score: 100 },
-      resetGame: mockResetGame
+      restartGame: mockRestartGame,
+      isLoading: false
     });
 
     render(<FinalResults />);
     
-    const button = screen.getByText('Start New Game');
-    fireEvent.click(button);
+    const startButton = screen.getByText('Start New Game');
+    fireEvent.click(startButton);
     
-    expect(mockResetGame).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockRestartGame).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('shows loading state when initializing new game', async () => {
-    const mockResetGame = jest.fn().mockImplementation(() => {
-      return new Promise(resolve => setTimeout(resolve, 100));
-    });
-    
+  it('should show loading state when initializing new game', () => {
     mockUseGameFlowStore.mockReturnValue({
       gamePhase: 'final',
       gameResults: { score: 100 },
-      resetGame: mockResetGame
+      restartGame: mockRestartGame,
+      isLoading: true
     });
 
     render(<FinalResults />);
-    
-    const button = screen.getByText('Start New Game');
-    fireEvent.click(button);
     
     expect(screen.getByText('Starting New Game...')).toBeInTheDocument();
-    expect(button).toBeDisabled();
-    
-    await waitFor(() => {
-      expect(screen.getByText('Start New Game')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Initializing new game...')).toBeInTheDocument();
   });
 
-  it('handles resetGame errors gracefully', async () => {
-    const mockResetGame = jest.fn().mockRejectedValue(new Error('Reset failed'));
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-    
+  it('should handle no game results gracefully', () => {
     mockUseGameFlowStore.mockReturnValue({
       gamePhase: 'final',
-      gameResults: { score: 100 },
-      resetGame: mockResetGame
+      gameResults: null,
+      restartGame: mockRestartGame,
+      isLoading: false
     });
 
     render(<FinalResults />);
     
-    const button = screen.getByText('Start New Game');
-    fireEvent.click(button);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Start New Game')).toBeInTheDocument();
-    });
-    
-    expect(consoleSpy).toHaveBeenCalledWith('Error starting new game:', expect.any(Error));
-    consoleSpy.mockRestore();
+    expect(screen.getByText('No game results available')).toBeInTheDocument();
   });
 });

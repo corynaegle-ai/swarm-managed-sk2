@@ -2,8 +2,14 @@ import React, { useState } from 'react';
 import { useGameFlowStore } from '../stores/gameFlowStore';
 
 const FinalResults = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { gamePhase, gameResults, resetGame } = useGameFlowStore();
+  const { 
+    gamePhase, 
+    gameResults, 
+    restartGame,
+    isLoading 
+  } = useGameFlowStore();
+  
+  const [isRestarting, setIsRestarting] = useState(false);
 
   // Only render when game is in final phase
   if (gamePhase !== 'final' && gamePhase !== 'complete') {
@@ -11,15 +17,17 @@ const FinalResults = () => {
   }
 
   const handleStartNewGame = async () => {
-    setIsLoading(true);
     try {
-      await resetGame();
+      setIsRestarting(true);
+      await restartGame();
     } catch (error) {
-      console.error('Error starting new game:', error);
+      console.error('Error restarting game:', error);
     } finally {
-      setIsLoading(false);
+      setIsRestarting(false);
     }
   };
+
+  const showLoading = isLoading || isRestarting;
 
   return (
     <div className="final-results">
@@ -28,39 +36,37 @@ const FinalResults = () => {
       </div>
       
       <div className="final-results__summary">
+        <h3>Game Summary</h3>
         {gameResults ? (
           <div className="game-summary">
-            <h3>Game Summary</h3>
-            <div className="summary-stats">
-              {gameResults.score && (
-                <div className="stat-item">
-                  <span className="label">Final Score:</span>
-                  <span className="value">{gameResults.score}</span>
-                </div>
-              )}
-              {gameResults.duration && (
-                <div className="stat-item">
-                  <span className="label">Duration:</span>
-                  <span className="value">{gameResults.duration}</span>
-                </div>
-              )}
-              {gameResults.level && (
-                <div className="stat-item">
-                  <span className="label">Level Reached:</span>
-                  <span className="value">{gameResults.level}</span>
-                </div>
-              )}
-              {gameResults.achievements && gameResults.achievements.length > 0 && (
-                <div className="stat-item">
-                  <span className="label">Achievements:</span>
-                  <ul className="achievements-list">
-                    {gameResults.achievements.map((achievement, index) => (
-                      <li key={index}>{achievement}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+            <div className="summary-item">
+              <span className="label">Final Score:</span>
+              <span className="value">{gameResults.score || 0}</span>
             </div>
+            {gameResults.duration && (
+              <div className="summary-item">
+                <span className="label">Duration:</span>
+                <span className="value">{gameResults.duration}</span>
+              </div>
+            )}
+            {gameResults.moves && (
+              <div className="summary-item">
+                <span className="label">Total Moves:</span>
+                <span className="value">{gameResults.moves}</span>
+              </div>
+            )}
+            {gameResults.winner && (
+              <div className="summary-item">
+                <span className="label">Winner:</span>
+                <span className="value">{gameResults.winner}</span>
+              </div>
+            )}
+            {gameResults.performance && (
+              <div className="summary-item">
+                <span className="label">Performance:</span>
+                <span className="value">{gameResults.performance}</span>
+              </div>
+            )}
           </div>
         ) : (
           <div className="no-results">
@@ -71,14 +77,28 @@ const FinalResults = () => {
 
       <div className="final-results__actions">
         <button 
+          className="btn btn-primary start-new-game-btn"
           onClick={handleStartNewGame}
-          disabled={isLoading}
-          className="start-new-game-btn"
-          type="button"
+          disabled={showLoading}
         >
-          {isLoading ? 'Starting New Game...' : 'Start New Game'}
+          {showLoading ? (
+            <>
+              <span className="loading-spinner"></span>
+              Starting New Game...
+            </>
+          ) : (
+            'Start New Game'
+          )}
         </button>
       </div>
+
+      {showLoading && (
+        <div className="loading-overlay">
+          <div className="loading-message">
+            Initializing new game...
+          </div>
+        </div>
+      )}
     </div>
   );
 };
