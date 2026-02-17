@@ -2,734 +2,564 @@
 
 ## Overview
 
-The game flow management system is a centralized state management solution that orchestrates the entire game lifecycle, from initial setup through completion. It manages game phases, player interactions, state transitions, and component coordination using a Redux-like store pattern.
+The game flow management system is a comprehensive state management solution that orchestrates the progression of game phases, manages component interactions, and maintains game state consistency. It provides a centralized architecture for handling complex game logic while maintaining clean separation of concerns.
 
 ## Architecture
 
 ### Core Components
 
+The game flow system consists of several interconnected components:
+
+- **GameFlowStore**: Central state management using Zustand
+- **GameFlowProvider**: React context provider for component access
+- **PhaseManager**: Handles phase transitions and validation
+- **ActionDispatcher**: Manages game actions and side effects
+- **StateValidator**: Ensures state consistency
+
+### State Management Architecture
+
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   GameStore     │    │  FlowManager    │    │  Components     │
-│                 │◄──►│                 │◄──►│                 │
-│ - State         │    │ - Transitions   │    │ - UI Updates    │
-│ - Actions       │    │ - Validation    │    │ - User Input    │
-│ - Reducers      │    │ - Side Effects  │    │ - Rendering     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   Event Bus     │
-                    │                 │
-                    │ - Notifications │
-                    │ - Logging       │
-                    │ - Analytics     │
-                    └─────────────────┘
+┌─────────────────┐
+│   Components    │
+│                 │
+├─────────────────┤
+│ GameFlowProvider│
+│                 │
+├─────────────────┤
+│ GameFlowStore   │
+│   (Zustand)     │
+├─────────────────┤
+│  PhaseManager   │
+│                 │
+├─────────────────┤
+│ Action System   │
+└─────────────────┘
 ```
+
+## Game Flow State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> LOBBY
+    LOBBY --> SETUP : startGame()
+    SETUP --> WAITING_FOR_PLAYERS : setupComplete()
+    WAITING_FOR_PLAYERS --> GAME_ACTIVE : allPlayersReady()
+    GAME_ACTIVE --> ROUND_START : nextRound()
+    ROUND_START --> PLAYER_TURN : beginPlayerTurns()
+    PLAYER_TURN --> PLAYER_TURN : nextPlayer()
+    PLAYER_TURN --> ROUND_END : allPlayersTurnComplete()
+    ROUND_END --> ROUND_START : hasMoreRounds()
+    ROUND_END --> GAME_END : gameComplete()
+    GAME_END --> LOBBY : resetGame()
+    
+    GAME_ACTIVE --> PAUSED : pauseGame()
+    PAUSED --> GAME_ACTIVE : resumeGame()
+    
+    state GAME_ACTIVE {
+        [*] --> ROUND_START
+        ROUND_START --> PLAYER_TURN
+        PLAYER_TURN --> ROUND_END
+        ROUND_END --> [*]
+    }
+```
+
+## Store API Reference
 
 ### State Structure
 
 ```typescript
-interface GameState {
-  // Game metadata
-  gameId: string;
-  sessionId: string;
-  timestamp: number;
-  
-  // Current phase and flow control
+interface GameFlowState {
+  // Phase Management
   currentPhase: GamePhase;
   previousPhase: GamePhase | null;
   phaseHistory: GamePhase[];
-  isTransitioning: boolean;
   
-  // Player state
+  // Game Data
+  gameId: string | null;
   players: Player[];
-  currentPlayer: number;
-  playerOrder: number[];
+  currentPlayer: Player | null;
+  currentRound: number;
+  maxRounds: number;
   
-  // Game-specific state
-  board: BoardState;
-  cards: CardState;
-  resources: ResourceState;
+  // Status Flags
+  isLoading: boolean;
+  isPaused: boolean;
+  isComplete: boolean;
   
-  // UI and interaction state
-  selectedCards: string[];
-  availableActions: Action[];
-  pendingConfirmations: Confirmation[];
-  
-  // Game progress
-  round: number;
-  turn: number;
-  score: ScoreState;
-  isGameOver: boolean;
-  winner: string | null;
+  // Metadata
+  gameStartTime: Date | null;
+  lastAction: string | null;
+  metadata: Record<string, any>;
 }
+
+type GamePhase = 
+  | 'LOBBY'
+  | 'SETUP' 
+  | 'WAITING_FOR_PLAYERS'
+  | 'GAME_ACTIVE'
+  | 'ROUND_START'
+  | 'PLAYER_TURN'
+  | 'ROUND_END'
+  | 'PAUSED'
+  | 'GAME_END';
 ```
 
-## Game Phases
+### Actions API
 
-### Phase Diagram
-
-```mermaid
-graph TD
-    A[SETUP] --> B[DRAW_PHASE]
-    B --> C[ACTION_PHASE]
-    C --> D[RESOLUTION_PHASE]
-    D --> E{End of Round?}
-    E -->|No| F[NEXT_PLAYER]
-    F --> B
-    E -->|Yes| G[SCORING_PHASE]
-    G --> H{Game Over?}
-    H -->|No| I[NEW_ROUND]
-    I --> B
-    H -->|Yes| J[GAME_OVER]
-    
-    C --> K[CARD_SELECTION]
-    K --> C
-    C --> L[RESOURCE_MANAGEMENT]
-    L --> C
-```
-
-### Phase Definitions
+#### Phase Management Actions
 
 ```typescript
-enum GamePhase {
-  // Initial setup
-  SETUP = 'setup',
-  PLAYER_JOIN = 'player_join',
-  INITIAL_DRAW = 'initial_draw',
+interface GameFlowActions {
+  // Phase Transitions
+  transitionTo: (phase: GamePhase, options?: TransitionOptions) => Promise<void>;
+  goToPreviousPhase: () => void;
   
-  // Main game loop
-  DRAW_PHASE = 'draw_phase',
-  ACTION_PHASE = 'action_phase',
-  CARD_SELECTION = 'card_selection',
-  RESOURCE_MANAGEMENT = 'resource_management',
-  RESOLUTION_PHASE = 'resolution_phase',
+  // Game Lifecycle
+  startGame: (config: GameConfig) => Promise<void>;
+  endGame: (reason?: string) => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
+  resetGame: () => void;
   
-  // End of turn/round
-  NEXT_PLAYER = 'next_player',
-  SCORING_PHASE = 'scoring_phase',
-  NEW_ROUND = 'new_round',
+  // Round Management
+  startRound: (roundNumber: number) => void;
+  endRound: () => void;
+  nextRound: () => void;
   
-  // Game completion
-  GAME_OVER = 'game_over',
+  // Player Management
+  addPlayer: (player: Player) => void;
+  removePlayer: (playerId: string) => void;
+  setCurrentPlayer: (playerId: string) => void;
+  nextPlayer: () => void;
   
-  // Error states
-  ERROR = 'error',
-  DISCONNECTED = 'disconnected'
+  // Utility
+  updateMetadata: (key: string, value: any) => void;
+  validateState: () => boolean;
 }
 ```
 
-## Store API and Actions
-
-### Core Store Methods
+#### Action Usage Examples
 
 ```typescript
-class GameStore {
-  // State access
-  getState(): GameState;
-  subscribe(listener: (state: GameState) => void): () => void;
-  
-  // Action dispatch
-  dispatch(action: GameAction): void;
-  
-  // Phase management
-  getCurrentPhase(): GamePhase;
-  canTransitionTo(phase: GamePhase): boolean;
-  transitionTo(phase: GamePhase, payload?: any): void;
-  
-  // Player management
-  getCurrentPlayer(): Player;
-  getNextPlayer(): Player;
-  isPlayerTurn(playerId: string): boolean;
-}
+// Starting a game
+await gameFlowStore.startGame({
+  maxRounds: 5,
+  players: playerList,
+  gameMode: 'competitive'
+});
+
+// Transitioning phases with validation
+await gameFlowStore.transitionTo('PLAYER_TURN', {
+  validateTransition: true,
+  triggerCallbacks: true
+});
+
+// Managing rounds
+gameFlowStore.startRound(1);
+gameFlowStore.nextPlayer();
+gameFlowStore.endRound();
 ```
 
-### Action Types
+### Store Selectors
 
 ```typescript
-// Phase transition actions
-interface TransitionPhaseAction {
-  type: 'TRANSITION_PHASE';
-  payload: {
-    from: GamePhase;
-    to: GamePhase;
-    playerId?: string;
-    metadata?: any;
-  };
-}
+// Accessing state with selectors
+const currentPhase = useGameFlowStore(state => state.currentPhase);
+const isGameActive = useGameFlowStore(state => 
+  state.currentPhase === 'GAME_ACTIVE'
+);
+const currentPlayerName = useGameFlowStore(state => 
+  state.currentPlayer?.name || 'No player'
+);
 
-// Player actions
-interface PlayerJoinAction {
-  type: 'PLAYER_JOIN';
-  payload: {
-    player: Player;
-    position?: number;
-  };
-}
-
-interface NextPlayerAction {
-  type: 'NEXT_PLAYER';
-  payload: {
-    currentPlayer: number;
-    nextPlayer: number;
-  };
-}
-
-// Game state actions
-interface UpdateBoardAction {
-  type: 'UPDATE_BOARD';
-  payload: {
-    boardState: Partial<BoardState>;
-    playerId: string;
-  };
-}
-
-interface DrawCardsAction {
-  type: 'DRAW_CARDS';
-  payload: {
-    playerId: string;
-    cards: Card[];
-    count: number;
-  };
-}
-
-interface PlayCardAction {
-  type: 'PLAY_CARD';
-  payload: {
-    playerId: string;
-    card: Card;
-    target?: any;
-  };
-}
-```
-
-### Action Creators
-
-```typescript
-// Phase management
-export const transitionPhase = (to: GamePhase, from?: GamePhase, metadata?: any) => ({
-  type: 'TRANSITION_PHASE',
-  payload: { from: from || getCurrentPhase(), to, metadata }
-});
-
-export const startGame = () => transitionPhase(GamePhase.DRAW_PHASE, GamePhase.SETUP);
-export const endTurn = () => transitionPhase(GamePhase.NEXT_PLAYER, GamePhase.RESOLUTION_PHASE);
-export const startNewRound = () => transitionPhase(GamePhase.NEW_ROUND, GamePhase.SCORING_PHASE);
-
-// Player actions
-export const joinPlayer = (player: Player, position?: number) => ({
-  type: 'PLAYER_JOIN',
-  payload: { player, position }
-});
-
-export const nextPlayer = () => ({
-  type: 'NEXT_PLAYER',
-  payload: {
-    currentPlayer: getCurrentPlayerIndex(),
-    nextPlayer: getNextPlayerIndex()
-  }
-});
-
-// Game actions
-export const drawCards = (playerId: string, count: number = 1) => ({
-  type: 'DRAW_CARDS',
-  payload: { playerId, count, cards: drawFromDeck(count) }
-});
-
-export const playCard = (playerId: string, card: Card, target?: any) => ({
-  type: 'PLAY_CARD',
-  payload: { playerId, card, target }
-});
-
-export const updateScore = (playerId: string, points: number, reason: string) => ({
-  type: 'UPDATE_SCORE',
-  payload: { playerId, points, reason, timestamp: Date.now() }
-});
-```
-
-## Phase Transition Logic
-
-### Transition Rules
-
-```typescript
-class PhaseTransitionManager {
-  private transitionRules: Map<GamePhase, GamePhase[]> = new Map([
-    [GamePhase.SETUP, [GamePhase.PLAYER_JOIN, GamePhase.INITIAL_DRAW]],
-    [GamePhase.PLAYER_JOIN, [GamePhase.SETUP, GamePhase.INITIAL_DRAW]],
-    [GamePhase.INITIAL_DRAW, [GamePhase.DRAW_PHASE]],
-    [GamePhase.DRAW_PHASE, [GamePhase.ACTION_PHASE]],
-    [GamePhase.ACTION_PHASE, [GamePhase.CARD_SELECTION, GamePhase.RESOURCE_MANAGEMENT, GamePhase.RESOLUTION_PHASE]],
-    [GamePhase.CARD_SELECTION, [GamePhase.ACTION_PHASE, GamePhase.RESOLUTION_PHASE]],
-    [GamePhase.RESOURCE_MANAGEMENT, [GamePhase.ACTION_PHASE, GamePhase.RESOLUTION_PHASE]],
-    [GamePhase.RESOLUTION_PHASE, [GamePhase.NEXT_PLAYER, GamePhase.SCORING_PHASE]],
-    [GamePhase.NEXT_PLAYER, [GamePhase.DRAW_PHASE]],
-    [GamePhase.SCORING_PHASE, [GamePhase.NEW_ROUND, GamePhase.GAME_OVER]],
-    [GamePhase.NEW_ROUND, [GamePhase.DRAW_PHASE]],
-    [GamePhase.GAME_OVER, []],
-    [GamePhase.ERROR, [GamePhase.SETUP]],
-    [GamePhase.DISCONNECTED, [GamePhase.SETUP, GamePhase.DRAW_PHASE]]
-  ]);
-
-  canTransition(from: GamePhase, to: GamePhase): boolean {
-    const allowedTransitions = this.transitionRules.get(from) || [];
-    return allowedTransitions.includes(to);
-  }
-
-  validateTransition(from: GamePhase, to: GamePhase, state: GameState): boolean {
-    if (!this.canTransition(from, to)) {
-      return false;
-    }
-
-    // Phase-specific validation logic
-    switch (to) {
-      case GamePhase.DRAW_PHASE:
-        return state.players.length >= 2;
-        
-      case GamePhase.ACTION_PHASE:
-        return state.players[state.currentPlayer].hand.length > 0;
-        
-      case GamePhase.RESOLUTION_PHASE:
-        return state.selectedCards.length > 0 || state.availableActions.length === 0;
-        
-      case GamePhase.SCORING_PHASE:
-        return this.isEndOfRound(state);
-        
-      case GamePhase.GAME_OVER:
-        return this.isGameComplete(state);
-        
-      default:
-        return true;
-    }
-  }
-}
-```
-
-### Transition Middleware
-
-```typescript
-const phaseTransitionMiddleware: Middleware = (store) => (next) => (action) => {
-  if (action.type === 'TRANSITION_PHASE') {
-    const state = store.getState();
-    const { from, to } = action.payload;
-    
-    // Validate transition
-    if (!transitionManager.validateTransition(from, to, state)) {
-      console.error(`Invalid transition from ${from} to ${to}`);
-      return;
-    }
-    
-    // Execute pre-transition hooks
-    executePreTransitionHooks(from, to, state);
-    
-    // Dispatch the transition
-    const result = next(action);
-    
-    // Execute post-transition hooks
-    executePostTransitionHooks(from, to, store.getState());
-    
-    return result;
-  }
-  
-  return next(action);
-};
+// Complex selectors
+const gameProgress = useGameFlowStore(state => ({
+  round: state.currentRound,
+  totalRounds: state.maxRounds,
+  percentage: (state.currentRound / state.maxRounds) * 100
+}));
 ```
 
 ## Component Integration
 
-### Game Flow Provider
+### GameFlowProvider Setup
 
 ```typescript
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { GameFlowProvider } from './components/game-flow/GameFlowProvider';
+import { gameFlowStore } from './stores/gameFlowStore';
 
-interface GameFlowContextType {
-  state: GameState;
-  dispatch: (action: GameAction) => void;
-  currentPhase: GamePhase;
-  canTransitionTo: (phase: GamePhase) => boolean;
-  transitionTo: (phase: GamePhase, metadata?: any) => void;
-}
-
-const GameFlowContext = createContext<GameFlowContextType | null>(null);
-
-export const GameFlowProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(gameFlowReducer, initialGameState);
-  
-  const currentPhase = state.currentPhase;
-  
-  const canTransitionTo = (phase: GamePhase): boolean => {
-    return transitionManager.canTransition(currentPhase, phase);
-  };
-  
-  const transitionTo = (phase: GamePhase, metadata?: any): void => {
-    dispatch(transitionPhase(phase, currentPhase, metadata));
-  };
-  
-  // Set up phase change listeners
-  useEffect(() => {
-    const unsubscribe = subscribeToPhaseChanges((newPhase, oldPhase) => {
-      console.log(`Phase transition: ${oldPhase} → ${newPhase}`);
-      // Handle side effects, logging, analytics, etc.
-    });
-    
-    return unsubscribe;
-  }, []);
-  
-  const contextValue: GameFlowContextType = {
-    state,
-    dispatch,
-    currentPhase,
-    canTransitionTo,
-    transitionTo
-  };
-  
+function App() {
   return (
-    <GameFlowContext.Provider value={contextValue}>
-      {children}
-    </GameFlowContext.Provider>
+    <GameFlowProvider store={gameFlowStore}>
+      <GameInterface />
+    </GameFlowProvider>
   );
-};
+}
+```
 
-export const useGameFlow = (): GameFlowContextType => {
-  const context = useContext(GameFlowContext);
-  if (!context) {
-    throw new Error('useGameFlow must be used within a GameFlowProvider');
+### Hook Usage in Components
+
+```typescript
+import { useGameFlow } from './hooks/useGameFlow';
+
+function GameComponent() {
+  const { 
+    currentPhase, 
+    currentPlayer, 
+    actions: { nextPlayer, endRound } 
+  } = useGameFlow();
+
+  const handlePlayerAction = async () => {
+    // Perform player action
+    await performAction();
+    
+    // Advance game state
+    nextPlayer();
+  };
+
+  if (currentPhase === 'PLAYER_TURN') {
+    return (
+      <PlayerTurnInterface 
+        player={currentPlayer}
+        onAction={handlePlayerAction}
+      />
+    );
   }
-  return context;
-};
+
+  return <PhaseTransition phase={currentPhase} />;
+}
 ```
 
 ### Phase-Specific Components
 
 ```typescript
-// Component that renders based on current phase
-export const PhaseRenderer: React.FC = () => {
-  const { currentPhase, state } = useGameFlow();
+// Component that renders based on game phase
+function PhaseRenderer() {
+  const currentPhase = useGameFlowStore(state => state.currentPhase);
   
-  switch (currentPhase) {
-    case GamePhase.SETUP:
-      return <SetupPhase />;
-      
-    case GamePhase.PLAYER_JOIN:
-      return <PlayerJoinPhase players={state.players} />;
-      
-    case GamePhase.DRAW_PHASE:
-      return <DrawPhase currentPlayer={state.players[state.currentPlayer]} />;
-      
-    case GamePhase.ACTION_PHASE:
-      return <ActionPhase 
-        currentPlayer={state.players[state.currentPlayer]}
-        availableActions={state.availableActions}
-      />;
-      
-    case GamePhase.CARD_SELECTION:
-      return <CardSelectionPhase 
-        hand={state.players[state.currentPlayer].hand}
-        selectedCards={state.selectedCards}
-      />;
-      
-    case GamePhase.RESOLUTION_PHASE:
-      return <ResolutionPhase />;
-      
-    case GamePhase.SCORING_PHASE:
-      return <ScoringPhase scores={state.score} />;
-      
-    case GamePhase.GAME_OVER:
-      return <GameOverPhase winner={state.winner} finalScores={state.score} />;
-      
-    default:
-      return <div>Unknown phase: {currentPhase}</div>;
-  }
-};
-
-// Hook for phase-specific logic
-export const usePhaseLogic = (phase: GamePhase) => {
-  const { currentPhase, state, dispatch } = useGameFlow();
-  const isCurrentPhase = currentPhase === phase;
-  
-  useEffect(() => {
-    if (isCurrentPhase) {
-      // Execute phase entry logic
-      onPhaseEnter(phase, state, dispatch);
-      
-      return () => {
-        // Execute phase exit logic
-        onPhaseExit(phase, state, dispatch);
-      };
-    }
-  }, [isCurrentPhase, phase, state, dispatch]);
-  
-  return {
-    isActive: isCurrentPhase,
-    canEnter: transitionManager.canTransition(currentPhase, phase),
-    enter: () => dispatch(transitionPhase(phase)),
-    state
-  };
-};
-```
-
-## Usage Examples
-
-### Basic Game Setup
-
-```typescript
-import React from 'react';
-import { GameFlowProvider, PhaseRenderer } from './game-flow';
-
-const GameApp: React.FC = () => {
-  return (
-    <GameFlowProvider>
-      <div className="game-container">
-        <GameHeader />
-        <PhaseRenderer />
-        <GameFooter />
-      </div>
-    </GameFlowProvider>
-  );
-};
-
-export default GameApp;
-```
-
-### Custom Phase Component
-
-```typescript
-import React from 'react';
-import { useGameFlow, usePhaseLogic } from '../game-flow';
-
-const DrawPhase: React.FC = () => {
-  const { state, dispatch } = useGameFlow();
-  const { isActive } = usePhaseLogic(GamePhase.DRAW_PHASE);
-  
-  const currentPlayer = state.players[state.currentPlayer];
-  
-  const handleDrawCards = (count: number) => {
-    dispatch(drawCards(currentPlayer.id, count));
-    // Automatically transition to action phase after drawing
-    setTimeout(() => {
-      dispatch(transitionPhase(GamePhase.ACTION_PHASE));
-    }, 1000);
+  const phaseComponents = {
+    LOBBY: LobbyComponent,
+    SETUP: SetupComponent,
+    WAITING_FOR_PLAYERS: WaitingComponent,
+    GAME_ACTIVE: GameActiveComponent,
+    PLAYER_TURN: PlayerTurnComponent,
+    GAME_END: GameEndComponent
   };
   
-  if (!isActive) {
-    return null;
-  }
+  const CurrentComponent = phaseComponents[currentPhase] || LoadingComponent;
   
-  return (
-    <div className="draw-phase">
-      <h2>Draw Phase - {currentPlayer.name}</h2>
-      <p>Cards in hand: {currentPlayer.hand.length}</p>
-      <p>Cards remaining in deck: {state.cards.deck.length}</p>
-      
-      <button 
-        onClick={() => handleDrawCards(1)}
-        disabled={state.cards.deck.length === 0}
-      >
-        Draw 1 Card
-      </button>
-      
-      <button 
-        onClick={() => handleDrawCards(2)}
-        disabled={state.cards.deck.length < 2}
-      >
-        Draw 2 Cards
-      </button>
-    </div>
-  );
-};
-```
+  return <CurrentComponent />;
+}
 
-### Action Phase with State Management
-
-```typescript
-const ActionPhase: React.FC = () => {
-  const { state, dispatch, transitionTo } = useGameFlow();
-  const currentPlayer = state.players[state.currentPlayer];
+// Individual phase component
+function PlayerTurnComponent() {
+  const { currentPlayer, actions } = useGameFlow();
+  const [isThinking, setIsThinking] = useState(false);
   
-  const handlePlayCard = (card: Card) => {
-    dispatch(playCard(currentPlayer.id, card));
+  const handleTurnComplete = async () => {
+    setIsThinking(true);
     
-    // Check if turn should end
-    if (shouldEndTurn(state)) {
-      transitionTo(GamePhase.RESOLUTION_PHASE);
+    try {
+      // Execute turn logic
+      await executeTurn();
+      
+      // Advance to next player or end round
+      if (hasMorePlayers()) {
+        actions.nextPlayer();
+      } else {
+        actions.endRound();
+      }
+    } finally {
+      setIsThinking(false);
     }
-  };
-  
-  const handleResourceAction = (action: ResourceAction) => {
-    dispatch(performResourceAction(currentPlayer.id, action));
-  };
-  
-  const handleEndTurn = () => {
-    transitionTo(GamePhase.RESOLUTION_PHASE);
   };
   
   return (
-    <div className="action-phase">
-      <PlayerHand 
-        cards={currentPlayer.hand}
-        onCardPlay={handlePlayCard}
-        selectedCards={state.selectedCards}
-      />
-      
-      <ResourcePanel 
-        resources={currentPlayer.resources}
-        onResourceAction={handleResourceAction}
-      />
-      
-      <ActionButtons>
-        <button onClick={handleEndTurn}>
-          End Turn
-        </button>
-      </ActionButtons>
-      
-      <GameBoard 
-        board={state.board}
-        currentPlayer={currentPlayer}
+    <div className="player-turn">
+      <h2>{currentPlayer.name}'s Turn</h2>
+      <ActionButtons 
+        disabled={isThinking}
+        onComplete={handleTurnComplete}
       />
     </div>
   );
-};
+}
 ```
 
-### Phase Transition Hooks
+## Phase Transition Logic
+
+### Transition Validation
+
+The system includes comprehensive validation for phase transitions to ensure game integrity:
 
 ```typescript
-// Custom hook for handling phase transitions
-export const usePhaseTransitions = () => {
-  const { currentPhase, state, dispatch } = useGameFlow();
-  
-  const goToNextPhase = useCallback(() => {
-    const nextPhase = determineNextPhase(currentPhase, state);
-    if (nextPhase) {
-      dispatch(transitionPhase(nextPhase));
-    }
-  }, [currentPhase, state, dispatch]);
-  
-  const skipToPhase = useCallback((targetPhase: GamePhase) => {
-    if (transitionManager.canTransition(currentPhase, targetPhase)) {
-      dispatch(transitionPhase(targetPhase));
-    } else {
-      console.warn(`Cannot skip to phase ${targetPhase} from ${currentPhase}`);
-    }
-  }, [currentPhase, dispatch]);
-  
-  return {
-    goToNextPhase,
-    skipToPhase,
-    currentPhase,
-    isTransitioning: state.isTransitioning
-  };
-};
+interface TransitionRule {
+  from: GamePhase[];
+  to: GamePhase;
+  validator?: (state: GameFlowState) => boolean;
+  sideEffects?: (state: GameFlowState) => void;
+}
 
-// Usage in component
-const GameControls: React.FC = () => {
-  const { goToNextPhase, skipToPhase, currentPhase } = usePhaseTransitions();
-  
-  return (
-    <div className="game-controls">
-      <button onClick={goToNextPhase}>
-        Next Phase
-      </button>
-      
-      {currentPhase !== GamePhase.GAME_OVER && (
-        <button onClick={() => skipToPhase(GamePhase.SCORING_PHASE)}>
-          Skip to Scoring
-        </button>
-      )}
-    </div>
-  );
-};
+const transitionRules: TransitionRule[] = [
+  {
+    from: ['LOBBY'],
+    to: 'SETUP',
+    validator: (state) => state.players.length >= 2,
+    sideEffects: (state) => initializeGameData(state)
+  },
+  {
+    from: ['SETUP'],
+    to: 'WAITING_FOR_PLAYERS',
+    validator: (state) => state.gameId !== null,
+    sideEffects: (state) => notifyPlayers(state.players)
+  },
+  {
+    from: ['WAITING_FOR_PLAYERS'],
+    to: 'GAME_ACTIVE',
+    validator: (state) => allPlayersReady(state.players),
+    sideEffects: (state) => startGameTimer(state)
+  }
+];
 ```
 
-### State Persistence and Recovery
+### Automatic Transitions
+
+Some transitions occur automatically based on game state:
 
 ```typescript
-// Save and restore game state
-export const useGamePersistence = () => {
-  const { state, dispatch } = useGameFlow();
-  
-  const saveGame = useCallback(() => {
-    const saveData = {
-      ...state,
-      timestamp: Date.now(),
-      version: '1.0.0'
-    };
-    
-    localStorage.setItem('gameState', JSON.stringify(saveData));
-  }, [state]);
-  
-  const loadGame = useCallback(() => {
-    const savedData = localStorage.getItem('gameState');
-    if (savedData) {
-      try {
-        const gameState = JSON.parse(savedData);
-        dispatch({ type: 'RESTORE_GAME_STATE', payload: gameState });
-        return true;
-      } catch (error) {
-        console.error('Failed to load game state:', error);
-        return false;
+// Auto-transition when conditions are met
+useEffect(() => {
+  const unsubscribe = gameFlowStore.subscribe(
+    (state) => state.players,
+    (players) => {
+      if (currentPhase === 'WAITING_FOR_PLAYERS' && 
+          players.every(p => p.isReady)) {
+        gameFlowStore.transitionTo('GAME_ACTIVE');
       }
     }
-    return false;
-  }, [dispatch]);
+  );
   
-  const clearSave = useCallback(() => {
-    localStorage.removeItem('gameState');
-  }, []);
+  return unsubscribe;
+}, [currentPhase]);
+```
+
+### Transition Callbacks
+
+Handle side effects during transitions:
+
+```typescript
+const handlePhaseChange = useCallback((newPhase: GamePhase) => {
+  const callbacks = {
+    GAME_ACTIVE: () => {
+      startBackgroundMusic();
+      initializeGameUI();
+    },
+    PLAYER_TURN: () => {
+      highlightCurrentPlayer();
+      startTurnTimer();
+    },
+    ROUND_END: () => {
+      calculateScores();
+      showRoundSummary();
+    },
+    GAME_END: () => {
+      stopBackgroundMusic();
+      showFinalResults();
+    }
+  };
   
-  return { saveGame, loadGame, clearSave };
-};
+  callbacks[newPhase]?.();
+}, []);
+
+// Subscribe to phase changes
+useEffect(() => {
+  return gameFlowStore.subscribe(
+    (state) => state.currentPhase,
+    handlePhaseChange
+  );
+}, [handlePhaseChange]);
+```
+
+## Advanced Usage Patterns
+
+### Conditional Rendering Based on Phase
+
+```typescript
+function ConditionalGameUI() {
+  const phase = useGameFlowStore(state => state.currentPhase);
+  
+  return (
+    <>
+      {phase === 'GAME_ACTIVE' && <GameTimer />}
+      {['PLAYER_TURN', 'ROUND_END'].includes(phase) && <ScoreBoard />}
+      {phase === 'PAUSED' && <PauseOverlay />}
+      {phase === 'GAME_END' && <ResultsModal />}
+    </>
+  );
+}
+```
+
+### Custom Phase Hooks
+
+```typescript
+// Hook for phase-specific logic
+function usePhaseEffect(phase: GamePhase, effect: () => void | (() => void)) {
+  const currentPhase = useGameFlowStore(state => state.currentPhase);
+  
+  useEffect(() => {
+    if (currentPhase === phase) {
+      return effect();
+    }
+  }, [currentPhase, phase, effect]);
+}
+
+// Usage
+function GameComponent() {
+  usePhaseEffect('PLAYER_TURN', () => {
+    const timer = setTimeout(() => {
+      // Auto-advance after timeout
+      gameFlowStore.nextPlayer();
+    }, 30000);
+    
+    return () => clearTimeout(timer);
+  });
+  
+  usePhaseEffect('ROUND_START', () => {
+    playSound('round-start');
+    showRoundNotification();
+  });
+}
+```
+
+### State Persistence
+
+```typescript
+// Persist game state across sessions
+const gameFlowStore = create(
+  persist(
+    (set, get) => ({
+      // ... store implementation
+    }),
+    {
+      name: 'game-flow-storage',
+      partialize: (state) => ({
+        // Only persist essential state
+        currentPhase: state.currentPhase,
+        players: state.players,
+        currentRound: state.currentRound,
+        gameId: state.gameId
+      })
+    }
+  )
+);
 ```
 
 ## Best Practices
 
-### 1. Phase Design
-- Keep phases focused on single responsibilities
-- Ensure clear entry and exit conditions
-- Validate all transitions
-- Handle edge cases and error states
+### 1. Phase Management
+- Always use the store's transition methods rather than directly setting phase
+- Validate transitions to prevent invalid state changes
+- Use phase history for undo functionality
+- Handle edge cases in transition validation
 
-### 2. State Management
-- Keep state immutable
-- Use action creators for consistency
-- Implement proper error boundaries
-- Log state changes for debugging
+### 2. Component Design
+- Create phase-specific components for better organization
+- Use conditional rendering based on phase state
+- Implement loading states during phase transitions
+- Handle phase transition animations gracefully
 
-### 3. Component Architecture
-- Use context providers for global game state
-- Create phase-specific components
-- Implement proper loading states
-- Handle component cleanup
+### 3. Error Handling
+```typescript
+// Wrap phase transitions in try-catch
+const safeTransition = async (phase: GamePhase) => {
+  try {
+    await gameFlowStore.transitionTo(phase);
+  } catch (error) {
+    console.error('Phase transition failed:', error);
+    // Fallback to safe state
+    gameFlowStore.transitionTo('LOBBY');
+  }
+};
+```
 
 ### 4. Performance Optimization
-- Memoize expensive calculations
-- Use React.memo for component optimization
-- Batch related state updates
-- Implement proper shouldComponentUpdate logic
+- Use specific selectors to prevent unnecessary re-renders
+- Implement memo for phase-specific components
+- Debounce rapid state changes
 
-### 5. Testing
 ```typescript
-// Example test for phase transitions
-describe('Game Flow Transitions', () => {
-  it('should transition from DRAW_PHASE to ACTION_PHASE', () => {
-    const initialState = createGameState({ currentPhase: GamePhase.DRAW_PHASE });
-    const action = transitionPhase(GamePhase.ACTION_PHASE);
-    
-    const newState = gameFlowReducer(initialState, action);
-    
-    expect(newState.currentPhase).toBe(GamePhase.ACTION_PHASE);
-    expect(newState.previousPhase).toBe(GamePhase.DRAW_PHASE);
-    expect(newState.phaseHistory).toContain(GamePhase.DRAW_PHASE);
+// Optimized selector usage
+const PlayerList = memo(() => {
+  const players = useGameFlowStore(state => state.players);
+  return <div>{/* render players */}</div>;
+});
+
+// Prevent unnecessary re-renders
+const GameStatus = memo(() => {
+  const { currentPhase, isPaused } = useGameFlowStore(
+    state => ({ 
+      currentPhase: state.currentPhase,
+      isPaused: state.isPaused 
+    }),
+    shallow // Use shallow comparison
+  );
+  
+  return <StatusDisplay phase={currentPhase} paused={isPaused} />;
+});
+```
+
+## Testing
+
+### Unit Testing Store Actions
+
+```typescript
+describe('GameFlowStore', () => {
+  beforeEach(() => {
+    gameFlowStore.resetGame();
   });
   
-  it('should not allow invalid transitions', () => {
-    const initialState = createGameState({ currentPhase: GamePhase.SETUP });
-    const action = transitionPhase(GamePhase.GAME_OVER);
+  test('should transition from LOBBY to SETUP', async () => {
+    // Setup
+    gameFlowStore.addPlayer({ id: '1', name: 'Player 1' });
+    gameFlowStore.addPlayer({ id: '2', name: 'Player 2' });
     
-    expect(() => gameFlowReducer(initialState, action)).toThrow('Invalid transition');
+    // Execute
+    await gameFlowStore.transitionTo('SETUP');
+    
+    // Assert
+    expect(gameFlowStore.getState().currentPhase).toBe('SETUP');
+  });
+  
+  test('should not allow invalid transitions', async () => {
+    // Should throw error when transitioning from LOBBY to GAME_ACTIVE
+    await expect(
+      gameFlowStore.transitionTo('GAME_ACTIVE')
+    ).rejects.toThrow('Invalid transition');
   });
 });
 ```
 
-This documentation provides a comprehensive overview of the game flow management system, covering architecture, state management, phase transitions, and practical implementation examples for developers working with the system.
+### Integration Testing
+
+```typescript
+describe('Game Flow Integration', () => {
+  test('complete game flow', async () => {
+    const { rerender } = render(<GameFlowTestComponent />);
+    
+    // Start in lobby
+    expect(screen.getByText('Lobby')).toBeInTheDocument();
+    
+    // Add players and start game
+    await act(async () => {
+      gameFlowStore.startGame(mockGameConfig);
+    });
+    
+    // Should be in game active state
+    await waitFor(() => {
+      expect(screen.getByText('Game Active')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+This documentation provides a comprehensive guide to the game flow management system, covering architecture, API usage, component integration, and best practices for developers working with the system.
