@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bid Collection Interface">
+    <title>Bid Collection - Swarm Managed SK2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="bid-collection-container">
+        <section id="bid-form-section">
+            <h2>Bid Collection</h2>
+            <div id="round-info">
+                <p>Round: <span id="current-round">1</span></p>
+                <p>Hands Available: <span id="hands-available">1</span></p>
+            </div>
+            
+            <form id="bid-form">
+                <div id="player-bids-container"></div>
+                <div id="bid-error-message" class="error-message" style="display: none;"></div>
+                <button type="submit" id="submit-bids-btn">Submit Bids</button>
+            </form>
+        </section>
+        
+        <section id="bid-success-message" style="display: none;">
+            <p>All bids collected successfully!</p>
+            <button id="proceed-btn">Proceed to Next Phase</button>
+        </section>
+    </div>
+    
+    <script src="js/bidding.js"></script>
+</body>
+</html>
