@@ -3,6 +3,7 @@ import GameState from './GameState.js';
 import MobileOptimizer from './mobile.js';
 import RoundManager from './rounds.js';
 import PhaseManager from './gamePhases.js';
+import { initializeScoreboard, updateScoreboard, addPlayerToScoreboard, removePlayerFromScoreboard } from './scoreboard.js';
 
 /**
  * Main Application Controller
@@ -214,7 +215,24 @@ class Application {
     this.showPhase('game');
     this.initializeGameUI();
     this.initializeRoundAndPhaseManagers();
+    this.initializeScoreboardIntegration();
     console.log('Game started with', this.playerManager.getAllPlayers().length, 'players');
+  }
+
+  /**
+   * Initialize scoreboard with current game state
+   */
+  initializeScoreboardIntegration() {
+    try {
+      const players = this.playerManager.getAllPlayers();
+      
+      // Initialize scoreboard with players and current round
+      initializeScoreboard(players);
+      
+      console.log('Scoreboard initialized with ' + players.length + ' players');
+    } catch (error) {
+      this.displayError('Error initializing scoreboard: ' + error.message, 'game');
+    }
   }
 
   /**
@@ -274,6 +292,9 @@ class Application {
       console.log('Round changed:', roundData);
       this.updateRoundAndPhaseDisplay();
       
+      // Update scoreboard with new round information
+      this.updateScoreboardDisplay();
+      
       // Advance phase manager to next phase if available
       if (this.phaseManager && this.phaseManager.hasNextPhase()) {
         this.phaseManager.nextPhase();
@@ -292,6 +313,21 @@ class Application {
       this.updateRoundAndPhaseDisplay();
     } catch (error) {
       console.error('Error handling phase change:', error);
+    }
+  }
+
+  /**
+   * Update scoreboard display with current game state
+   */
+  updateScoreboardDisplay() {
+    try {
+      const players = this.playerManager.getAllPlayers();
+      const currentRound = this.roundManager?.getCurrentRound()?.roundNumber || 1;
+      
+      // Update scoreboard with current game state
+      updateScoreboard(players, currentRound);
+    } catch (error) {
+      console.error('Error updating scoreboard display:', error);
     }
   }
 
