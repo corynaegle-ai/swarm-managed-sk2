@@ -1,3 +1,87 @@
+import { scoreEngine } from '../app.js';
+
+// Get DOM elements
+const demoForm = document.getElementById('demo-form');
+const bidInput = document.getElementById('demo-bid');
+const tricksInput = document.getElementById('demo-tricks');
+const roundInput = document.getElementById('demo-round');
+const calculateBtn = document.getElementById('demo-calculate-btn');
+const errorDiv = document.getElementById('demo-error');
+const resultsDiv = document.getElementById('demo-results');
+const resultsContent = document.getElementById('demo-results-content');
+
+// Handle form submission
+demoForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    // Clear previous error and results
+    errorDiv.style.display = 'none';
+    resultsDiv.style.display = 'none';
+    errorDiv.textContent = '';
+    resultsContent.innerHTML = '';
+    
+    // Get input values
+    const bid = parseInt(bidInput.value, 10);
+    const tricks = parseInt(tricksInput.value, 10);
+    const round = parseInt(roundInput.value, 10);
+    
+    // Validate inputs
+    if (isNaN(bid) || isNaN(tricks) || isNaN(round)) {
+        showError('Please enter valid numbers for all fields.');
+        return;
+    }
+    
+    if (bid < 1 || bid > 13) {
+        showError('Bid must be between 1 and 13.');
+        return;
+    }
+    
+    if (tricks < 0 || tricks > 13) {
+        showError('Tricks taken must be between 0 and 13.');
+        return;
+    }
+    
+    if (round < 1 || round > 10) {
+        showError('Round number must be between 1 and 10.');
+        return;
+    }
+    
+    try {
+        // Calculate score using the score engine
+        const scoreResult = scoreEngine.calculateScore(bid, tricks, round);
+        
+        // Display results
+        displayResults(scoreResult, bid, tricks, round);
+    } catch (error) {
+        showError('Error calculating score: ' + error.message);
+    }
+});
+
+// Show error message
+function showError(message) {
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+}
+
+// Display calculation results
+function displayResults(scoreResult, bid, tricks, round) {
+    const bidMet = tricks >= bid;
+    const bidMetStatus = bidMet ? '✓ Bid Met' : '✗ Bid Not Met';
+    
+    let html = `
+        <p><strong>Round:</strong> ${round}</p>
+        <p><strong>Bid:</strong> ${bid} | <strong>Tricks Taken:</strong> ${tricks}</p>
+        <p><strong>Status:</strong> <span class="bid-status ${bidMet ? 'bid-met' : 'bid-not-met'}">${bidMetStatus}</span></p>
+        <p><strong>Points Earned:</strong> <span class="score-points">${scoreResult.points}</span></p>
+    `;
+    
+    if (scoreResult.breakdown) {
+        html += `<p><strong>Breakdown:</strong> ${scoreResult.breakdown}</p>`;
+    }
+    
+    resultsContent.innerHTML = html;
+    resultsDiv.style.display = 'block';
+}
 /**
  * Score Engine Demo Module
  * Provides interactive demonstration of the scoring engine with form inputs
