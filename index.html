@@ -1,54 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A strategy card game where players bid on tricks and earn points based on accuracy.">
-    <title>Tricks & Bonus Card Game</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header>
-        <h1>Tricks & Bonus Card Game</h1>
-        <p>A strategy-based trick-taking card game</p>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Swarm Managed SK2 - Tricks card game scoring application" />
+    <title>Swarm Managed SK2</title>
+    <link rel="stylesheet" href="styles/rounds.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Tricks Card Game Scoring</h1>
+      </header>
+      <main>
+        <section id="demo-section">
+          <h2>Demo Bid & Tricks Entry</h2>
+          <div id="demo-bid">
+            <label for="bid-input">Bid:</label>
+            <input type="number" id="bid-input" name="bid" min="0" required />
+            <span id="demo-result"></span>
+            <span id="demo-error" style="color: red"></span>
+          </div>
+          <div id="demo-tricks">
+            <label for="tricks-input">Tricks:</label>
+            <input type="number" id="tricks-input" name="tricks" min="0" required />
+          </div>
+          <div id="demo-round">
+            <button type="button" onclick="validateRound()">Submit Round</button>
+          </div>
+        </section>
 
-    <section id="round-progression">
-        <h2>Game Progress</h2>
-        <div id="round-counter">Round: <span>1</span></div>
-        <div id="hands-count">Hands: <span>1</span></div>
-        <div id="phase-indicator">Phase: <span>Setup</span></div>
-        <button id="next-round-btn">Next Round</button>
-        <p id="completion-message" style="display: none;">Game Complete!</p>
-    </section>
-
-    <section id="demo-section">
-        <h2>Demo Section</h2>
-        <form id="demo-form">
-            <input type="text" placeholder="Enter name" required>
-            <button type="submit">Submit</button>
-        </form>
-    </section>
-
-    <section id="tricks-bonus-form">
-        <h2>Round Results</h2>
-        <form id="round-results-form">
+        <section id="tricks-bonus-form">
+          <h2>Round Results</h2>
+          <form id="round-results-form">
             <div class="player-entries">
-                <div class="player-row">
-                    <span class="player-name">Player 1</span>
-                    <span class="player-bid">Bid: 3</span>
-                    <input type="number" name="tricks" min="0" class="tricks-input" required>
-                    <input type="number" name="bonus" class="bonus-input" step="1">
-                </div>
+              <div class="player-entry">
+                <span class="player-name">Player 1</span>
+                <span class="player-bid">Bid: 3</span>
+                <input type="number" name="tricks" min="0" class="tricks-input" placeholder="Tricks won" required />
+                <input type="number" name="bonus" class="bonus-input" placeholder="Bonus points" step="1" />
+              </div>
             </div>
             <button type="submit" class="submit-scores-btn">Calculate Scores</button>
-        </form>
-    </section>
+          </form>
+        </section>
+      </main>
+      <footer>
+        <p>Tricks Card Game © 2024</p>
+      </footer>
+    </div>
 
-    <footer>
-        <p>&copy; 2024 Tricks & Bonus Card Game. All rights reserved.</p>
-    </footer>
-
-    <script type="module" src="js/demo.js"></script>
-</body>
+    <script src="js/scoreboard.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>
