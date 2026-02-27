@@ -1,14 +1,16 @@
 /**
- * Main application entry point
- * Initializes the game and sets up scoreboard functionality
+ * Main application file for Swarm Managed SK2
+ * Integrates with index.html and manages application state
  */
 
-// Initialize the scoreboard when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('Application initialized');
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
 
-  // Initialize scoreboard event listeners if the module is available
-  if (typeof window.scoreboardModule !== 'undefined') {
-    window.scoreboardModule.initializeEventListeners();
-  }
-});
+function initializeApp() {
+  // Application is ready
+  console.log('Swarm Managed SK2 application initialized');
+}
