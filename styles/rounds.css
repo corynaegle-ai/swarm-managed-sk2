@@ -1,0 +1,186 @@
+/* Round Progression Styling */
+
+.round-progression {
+    padding: 2rem;
+    margin: 1.5rem 0;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.round-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.round-counter {
+    flex: 1;
+    min-width: 200px;
+}
+
+.round-counter h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    color: #212529;
+}
+
+.hands-count {
+    margin: 0;
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.phase-indicator {
+    flex: 1;
+    min-width: 200px;
+}
+
+.phase-indicator p {
+    margin: 0;
+    font-size: 1rem;
+    color: #212529;
+}
+
+.phase-status {
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    background-color: #e7f3ff;
+    color: #0c5aa0;
+    display: inline-block;
+}
+
+.phase-status.dealing {
+    background-color: #e7f3ff;
+    color: #0c5aa0;
+}
+
+.phase-status.bidding {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.phase-status.playing {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.phase-status.finished {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.next-round-button {
+    padding: 0.75rem 1.5rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    align-self: flex-start;
+}
+
+.next-round-button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.next-round-button:active:not(:disabled) {
+    background-color: #004085;
+}
+
+.next-round-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.next-round-button:focus {
+    outline: 2px solid #0c5aa0;
+    outline-offset: 2px;
+}
+
+.game-completion {
+    padding: 1.5rem;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.game-completion h2 {
+    margin: 0 0 0.5rem 0;
+    color: #155724;
+    font-size: 1.75rem;
+}
+
+.game-completion p {
+    margin: 0;
+    color: #155724;
+    font-size: 1rem;
+}
+
+/* Progress indicator for rounds */
+.round-progress {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.round-dot {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #e9ecef;
+    color: #6c757d;
+    border: 2px solid #dee2e6;
+}
+
+.round-dot.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+.round-dot.completed {
+    background-color: #28a745;
+    color: white;
+    border-color: #1e7e34;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .round-progression {
+        padding: 1.5rem;
+    }
+
+    .round-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .round-counter,
+    .phase-indicator {
+        width: 100%;
+    }
+
+    .next-round-button {
+        width: 100%;
+        align-self: stretch;
+    }
+}
