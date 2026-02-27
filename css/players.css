@@ -1,29 +1,29 @@
 /**
- * Player Management Styles
- * Responsive styling for player cards, forms, and related UI elements
+ * Players CSS
+ * Styling for player management section, cards, and forms
  */
 
 /* Player Management Section */
 .player-management-section {
-  padding: 2rem;
-  background-color: #f8f9fa;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
+  padding: 2rem;
   margin: 2rem 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .player-management-section h2 {
   margin-top: 0;
-  margin-bottom: 1.5rem;
   color: #333;
   font-size: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Add Player Form */
 #add-player-form {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
@@ -34,56 +34,116 @@
   border: 2px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
-  transition: border-color 0.2s ease;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
 }
 
 #player-name-input:focus {
   outline: none;
   border-color: #4CAF50;
-  box-shadow: 0 0 4px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
-#add-player-form button {
+#player-name-input:disabled {
+  background-color: #f0f0f0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+#add-player-form button[type="submit"] {
   padding: 0.75rem 1.5rem;
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   font-size: 1rem;
-  cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.2s ease;
+  cursor: pointer;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
-#add-player-form button:hover:not(:disabled) {
+#add-player-form button[type="submit"]:hover:not(:disabled) {
   background-color: #45a049;
 }
 
-#add-player-form button:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-#add-player-form button:disabled {
-  background-color: #cccccc;
+#add-player-form button[type="submit"]:disabled {
+  background-color: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
+/* Error Message Display */
+.player-form-error {
+  display: none;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #f5a5a5;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.player-form-error.show {
+  display: block;
+  animation: slideDown 0.3s ease-in;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Player Count Display */
+#player-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  color: #666;
+}
+
+#player-count .count-invalid {
+  color: #f44336;
+  font-weight: 600;
+}
+
+#player-count .count-valid {
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+#player-count .count-indicator {
+  color: #999;
+  font-size: 0.9rem;
+}
+
 /* Player List */
 #player-list {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .player-list-empty {
-  padding: 1rem;
-  text-align: center;
   color: #999;
   font-style: italic;
-  background-color: #fff;
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f0f0f0;
   border-radius: 4px;
+  text-align: center;
 }
 
-.player-cards {
+.player-list-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1rem;
@@ -91,20 +151,20 @@
 
 /* Player Card */
 .player-card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
-  background-color: #fff;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .player-card:hover {
   border-color: #4CAF50;
-  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.1);
 }
 
 .player-name {
@@ -112,92 +172,54 @@
   color: #333;
   flex: 1;
   word-break: break-word;
-  margin-right: 1rem;
+  margin-right: 0.5rem;
 }
 
-.remove-player-btn {
+.btn-remove-player {
   padding: 0.5rem 1rem;
   background-color: #f44336;
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  transition: background-color 0.2s ease;
+  cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
   flex-shrink: 0;
 }
 
-.remove-player-btn:hover:not(:disabled) {
+.btn-remove-player:hover:not(:disabled) {
   background-color: #da190b;
 }
 
-.remove-player-btn:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.remove-player-btn:disabled {
-  background-color: #cccccc;
+.btn-remove-player:disabled {
+  background-color: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-/* Player Count Display */
-#player-count {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background-color: #e3f2fd;
-  border-left: 4px solid #2196F3;
-  border-radius: 4px;
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-}
-
-#player-count .count-valid {
-  color: #2e7d32;
-  font-weight: 700;
-}
-
-#player-count .count-invalid {
-  color: #c62828;
-  font-weight: 700;
-}
-
-#player-count .count-indicator {
-  color: #666;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
 /* Start Game Button */
 #start-game-btn {
-  padding: 1rem 2rem;
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
   background-color: #2196F3;
   color: white;
   border: none;
   border-radius: 4px;
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  width: 100%;
-  transition: background-color 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
 #start-game-btn:hover:not(:disabled) {
-  background-color: #1976D2;
-}
-
-#start-game-btn:active:not(:disabled) {
-  transform: scale(0.98);
+  background-color: #0b7dda;
 }
 
 #start-game-btn:disabled {
-  background-color: #cccccc;
+  background-color: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -206,7 +228,6 @@
 @media (max-width: 768px) {
   .player-management-section {
     padding: 1.5rem;
-    margin: 1rem 0;
   }
 
   #add-player-form {
@@ -217,37 +238,33 @@
     min-width: 100%;
   }
 
-  #add-player-form button {
+  #add-player-form button[type="submit"] {
     width: 100%;
   }
 
-  .player-cards {
+  .player-list-items {
     grid-template-columns: 1fr;
   }
 
   .player-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
   }
 
   .player-name {
+    margin-bottom: 0.75rem;
     margin-right: 0;
-    margin-bottom: 0.5rem;
-  }
-
-  .remove-player-btn {
+    display: block;
     width: 100%;
   }
 
-  #player-count {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .btn-remove-player {
+    width: 100%;
+    text-align: center;
   }
 
   #start-game-btn {
-    padding: 0.875rem 1.5rem;
+    width: 100%;
   }
 }
 
@@ -261,12 +278,15 @@
     margin-bottom: 1rem;
   }
 
-  #add-player-form {
-    margin-bottom: 1.5rem;
+  #player-name-input {
+    font-size: 16px; /* Prevents auto-zoom on iOS */
   }
 
-  #player-count {
-    font-size: 1rem;
+  .player-list-items {
+    gap: 0.75rem;
+  }
+
+  .player-card {
     padding: 0.75rem;
   }
 }

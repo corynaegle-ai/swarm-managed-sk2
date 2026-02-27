@@ -1,267 +1,339 @@
 /**
- * Player Manager Module
- * Handles rendering and managing the player list UI component
+ * PlayerManager Module
+ * Handles player list rendering, add/remove operations, and UI state management.
+ * Requires GameState instance via init() before use.
  */
 
-(function() {
-  'use strict';
-
-  // Configuration
-  const MIN_PLAYERS = 2;
-  const MAX_PLAYERS = 8;
-
+const PlayerManager = (() => {
+  // Private state
   let gameState = null;
-  let isGameStarted = false;
+  let initialized = false;
+  let eventListenersAttached = false;
+
+  // DOM element references
+  let addPlayerForm = null;
+  let playerNameInput = null;
+  let playerCountDisplay = null;
+  let playerList = null;
+  let startGameBtn = null;
+  let errorDisplay = null;
 
   /**
-   * Initialize the player manager with game state
-   * @param {Object} state - GameState instance
+   * Initialize PlayerManager with a GameState instance
+   * @param {GameState} gs - The game state instance
    */
-  function init(state) {
-    gameState = state;
-    setupEventListeners();
+  function init(gs) {
+    if (!gs) {
+      console.error('PlayerManager.init() requires a GameState instance');
+      return;
+    }
+
+    gameState = gs;
+
+    // Cache DOM elements
+    addPlayerForm = document.getElementById('add-player-form');
+    playerNameInput = document.getElementById('player-name-input');
+    playerCountDisplay = document.getElementById('player-count');
+    playerList = document.getElementById('player-list');
+    startGameBtn = document.getElementById('start-game-btn');
+
+    // Create error display element if it doesn't exist
+    if (!errorDisplay) {
+      errorDisplay = document.createElement('div');
+      errorDisplay.className = 'player-form-error';
+      errorDisplay.setAttribute('aria-live', 'polite');
+      errorDisplay.setAttribute('aria-atomic', 'true');
+      addPlayerForm.parentNode.insertBefore(errorDisplay, addPlayerForm.nextSibling);
+    }
+
+    // Validate all required DOM elements exist
+    if (!addPlayerForm || !playerNameInput || !playerCountDisplay || !playerList || !startGameBtn) {
+      console.error('PlayerManager: Required DOM elements not found');
+      return;
+    }
+
+    // Setup event listeners only once
+    if (!eventListenersAttached) {
+      setupEventListeners();
+      eventListenersAttached = true;
+    }
+
+    initialized = true;
+
+    // Initial render
     render();
   }
 
   /**
-   * Set up all event listeners for player management
+   * Setup event listeners for player management
    */
   function setupEventListeners() {
-    const addPlayerForm = document.getElementById('add-player-form');
-    const startGameBtn = document.getElementById('start-game-btn');
+    // Add player form submission
+    addPlayerForm.addEventListener('submit', handleAddPlayer);
 
-    if (addPlayerForm) {
-      addPlayerForm.addEventListener('submit', handleAddPlayer);
-    }
-
-    if (startGameBtn) {
-      startGameBtn.addEventListener('click', handleStartGame);
-    }
+    // Start game button click
+    startGameBtn.addEventListener('click', handleStartGame);
   }
 
   /**
-   * Handle adding a new player
-   * @param {Event} event - Form submit event
+   * Handle add player form submission
+   * @param {Event} e - Form submission event
    */
-  function handleAddPlayer(event) {
-    event.preventDefault();
-
-    const playerNameInput = document.getElementById('player-name-input');
-    const playerName = playerNameInput.value.trim();
-
-    // Validation
-    if (!playerName) {
-      alert('Please enter a player name');
-      return;
-    }
+  function handleAddPlayer(e) {
+    e.preventDefault();
 
     if (!gameState) {
-      console.error('GameState not initialized');
+      clearErrorMessage();
+      showErrorMessage('Game state not initialized');
       return;
     }
 
-    // Add player to game state
+    const playerName = playerNameInput.value.trim();
+
+    // Validation: empty name
+    if (!playerName) {
+      showErrorMessage('Player name cannot be empty');
+      playerNameInput.focus();
+      return;
+    }
+
+    // Validation: name too long
+    if (playerName.length > 50) {
+      showErrorMessage('Player name must be 50 characters or less');
+      playerNameInput.focus();
+      return;
+    }
+
+    // Validation: duplicate player name
+    const existingPlayers = gameState.getPlayers();
+    if (existingPlayers.includes(playerName)) {
+      showErrorMessage(`Player "${playerName}" already exists`);
+      playerNameInput.focus();
+      return;
+    }
+
+    // Validation: max players reached
+    if (gameState.getPlayerCount() >= 8) {
+      showErrorMessage('Maximum of 8 players allowed');
+      return;
+    }
+
+    // Add player via game state
     try {
       gameState.addPlayer(playerName);
+      clearErrorMessage();
       playerNameInput.value = '';
       playerNameInput.focus();
       render();
     } catch (error) {
-      alert('Error adding player: ' + error.message);
+      showErrorMessage(`Failed to add player: ${error.message}`);
     }
   }
 
   /**
-   * Handle starting the game
+   * Handle remove player action
+   * @param {string} playerName - The player name to remove
    */
-  function handleStartGame() {
-    const playerCount = gameState ? gameState.getPlayerCount() : 0;
-
-    if (playerCount < MIN_PLAYERS || playerCount > MAX_PLAYERS) {
-      alert(`Game requires ${MIN_PLAYERS}-${MAX_PLAYERS} players. Current: ${playerCount}`);
+  function handleRemovePlayer(playerName) {
+    if (!gameState) {
+      showErrorMessage('Game state not initialized');
       return;
     }
 
-    if (!gameState) {
-      console.error('GameState not initialized');
-      return;
-    }
-
-    try {
-      gameState.startGame();
-      isGameStarted = true;
-      render();
-    } catch (error) {
-      alert('Error starting game: ' + error.message);
-    }
-  }
-
-  /**
-   * Remove a player by name
-   * @param {string} playerName - Name of player to remove
-   */
-  function removePlayer(playerName) {
-    if (!gameState) {
-      console.error('GameState not initialized');
+    // Prevent removal if game has started
+    if (gameState.isGameStarted && gameState.isGameStarted()) {
+      showErrorMessage('Cannot remove players after game has started');
       return;
     }
 
     try {
       gameState.removePlayer(playerName);
+      clearErrorMessage();
       render();
     } catch (error) {
-      alert('Error removing player: ' + error.message);
+      showErrorMessage(`Failed to remove player: ${error.message}`);
     }
   }
 
   /**
-   * Render the entire player management UI
+   * Handle start game button click
+   */
+  function handleStartGame() {
+    if (!gameState) {
+      showErrorMessage('Game state not initialized');
+      return;
+    }
+
+    const playerCount = gameState.getPlayerCount();
+
+    // Validation: check player count before calling game state
+    if (playerCount < 2 || playerCount > 8) {
+      showErrorMessage(`You need 2-8 players to start. Currently: ${playerCount}`);
+      return;
+    }
+
+    try {
+      gameState.startGame();
+      clearErrorMessage();
+      render();
+      // Disable form and start button after game starts
+      updateFormState();
+    } catch (error) {
+      showErrorMessage(`Failed to start game: ${error.message}`);
+    }
+  }
+
+  /**
+   * Display error message in the error display element
+   * @param {string} message - The error message to display
+   */
+  function showErrorMessage(message) {
+    if (errorDisplay) {
+      errorDisplay.textContent = message;
+      errorDisplay.classList.add('show');
+    }
+  }
+
+  /**
+   * Clear the error message display
+   */
+  function clearErrorMessage() {
+    if (errorDisplay) {
+      errorDisplay.textContent = '';
+      errorDisplay.classList.remove('show');
+    }
+  }
+
+  /**
+   * Update form and button states based on game status
+   */
+  function updateFormState() {
+    if (!gameState) return;
+
+    const isGameStarted = gameState.isGameStarted && gameState.isGameStarted();
+    const playerCount = gameState.getPlayerCount();
+
+    // Disable/enable add player form
+    playerNameInput.disabled = isGameStarted;
+    addPlayerForm.querySelector('button[type="submit"]').disabled = isGameStarted;
+
+    // Enable start game button only if 2-8 players and game not started
+    startGameBtn.disabled = isGameStarted || playerCount < 2 || playerCount > 8;
+  }
+
+  /**
+   * Render the player list
    */
   function render() {
-    renderPlayerList();
-    renderPlayerCount();
-    updateStartGameButton();
-  }
-
-  /**
-   * Render the player list with remove buttons
-   */
-  function renderPlayerList() {
-    const playerListContainer = document.getElementById('player-list');
-
-    if (!playerListContainer) {
-      console.warn('Player list container not found');
-      return;
-    }
-
-    // Clear existing list
-    playerListContainer.innerHTML = '';
-
-    if (!gameState) {
-      return;
-    }
+    if (!gameState) return;
 
     const players = gameState.getPlayers();
+    const playerCount = gameState.getPlayerCount();
+    const isGameStarted = gameState.isGameStarted && gameState.isGameStarted();
 
-    if (players.length === 0) {
-      const emptyMessage = document.createElement('p');
-      emptyMessage.className = 'player-list-empty';
-      emptyMessage.textContent = 'No players added yet. Add players to begin.';
-      playerListContainer.appendChild(emptyMessage);
-      return;
-    }
+    // Update player count display
+    updatePlayerCountDisplay(playerCount);
 
-    const playerListElement = document.createElement('div');
-    playerListElement.className = 'player-cards';
+    // Render player list
+    if (playerCount === 0) {
+      playerList.innerHTML = '<p class="player-list-empty">No players added yet. Add players to begin.</p>';
+    } else {
+      playerList.innerHTML = '';
+      const ul = document.createElement('ul');
+      ul.className = 'player-list-items';
 
-    players.forEach((player, index) => {
-      const playerCard = document.createElement('div');
-      playerCard.className = 'player-card';
-      playerCard.setAttribute('data-player-name', player);
+      players.forEach((player) => {
+        const li = document.createElement('li');
+        li.className = 'player-card';
+        li.setAttribute('data-player-name', player);
 
-      const playerNameElement = document.createElement('span');
-      playerNameElement.className = 'player-name';
-      playerNameElement.textContent = `${index + 1}. ${player}`;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'player-name';
+        nameSpan.textContent = player;
 
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.className = 'remove-player-btn';
-      removeBtn.textContent = 'Remove';
-      removeBtn.disabled = isGameStarted;
-      removeBtn.setAttribute('aria-label', `Remove player ${player}`);
-      removeBtn.addEventListener('click', function() {
-        removePlayer(player);
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-remove-player';
+        removeBtn.textContent = 'Remove';
+        removeBtn.disabled = isGameStarted;
+        removeBtn.setAttribute('aria-label', `Remove player ${player}`);
+        removeBtn.addEventListener('click', () => {
+          handleRemovePlayer(player);
+        });
+
+        li.appendChild(nameSpan);
+        li.appendChild(removeBtn);
+        ul.appendChild(li);
       });
 
-      playerCard.appendChild(playerNameElement);
-      playerCard.appendChild(removeBtn);
-      playerListElement.appendChild(playerCard);
-    });
-
-    playerListContainer.appendChild(playerListElement);
-  }
-
-  /**
-   * Render the player count display with min/max indicators
-   */
-  function renderPlayerCount() {
-    const playerCountElement = document.getElementById('player-count');
-
-    if (!playerCountElement) {
-      console.warn('Player count element not found');
-      return;
+      playerList.appendChild(ul);
     }
 
-    const playerCount = gameState ? gameState.getPlayerCount() : 0;
-    const isValid = playerCount >= MIN_PLAYERS && playerCount <= MAX_PLAYERS;
-
-    playerCountElement.innerHTML = '';
-
-    const countText = document.createElement('span');
-    countText.className = isValid ? 'count-valid' : 'count-invalid';
-    countText.textContent = `Players: ${playerCount}`;
-
-    const indicator = document.createElement('span');
-    indicator.className = 'count-indicator';
-    indicator.textContent = `(${MIN_PLAYERS}-${MAX_PLAYERS})`;
-
-    playerCountElement.appendChild(countText);
-    playerCountElement.appendChild(indicator);
+    // Update form and button states
+    updateFormState();
   }
 
   /**
-   * Update the start game button state
+   * Update the player count display element
+   * @param {number} count - The current player count
    */
-  function updateStartGameButton() {
-    const startGameBtn = document.getElementById('start-game-btn');
+  function updatePlayerCountDisplay(count) {
+    if (!playerCountDisplay) return;
 
-    if (!startGameBtn) {
-      console.warn('Start game button not found');
-      return;
+    const countSpan = playerCountDisplay.querySelector('.count-invalid, .count-valid');
+    const indicator = playerCountDisplay.querySelector('.count-indicator');
+
+    if (countSpan && indicator) {
+      // Remove both classes and add appropriate one
+      countSpan.className = count >= 2 && count <= 8 ? 'count-valid' : 'count-invalid';
+      countSpan.textContent = `Players: ${count}`;
+      indicator.textContent = '(2-8)';
     }
-
-    const playerCount = gameState ? gameState.getPlayerCount() : 0;
-    const isValid = playerCount >= MIN_PLAYERS && playerCount <= MAX_PLAYERS;
-
-    startGameBtn.disabled = !isValid || isGameStarted;
-    startGameBtn.setAttribute('aria-disabled', !isValid || isGameStarted);
   }
 
   /**
-   * Get the game state (for external access if needed)
-   * @returns {Object} Current game state
-   */
-  function getGameState() {
-    return gameState;
-  }
-
-  /**
-   * Check if game has started
-   * @returns {boolean} Whether the game has started
-   */
-  function getIsGameStarted() {
-    return isGameStarted;
-  }
-
-  /**
-   * Reset the player manager state
+   * Reset player manager state
    */
   function reset() {
-    isGameStarted = false;
-    if (playerNameInput) {
-      playerNameInput.value = '';
+    if (!gameState) return;
+
+    try {
+      // Clear all players via game state
+      const players = gameState.getPlayers();
+      players.forEach((player) => {
+        gameState.removePlayer(player);
+      });
+
+      // Clear form input
+      if (playerNameInput) {
+        playerNameInput.value = '';
+        playerNameInput.disabled = false;
+        playerNameInput.focus();
+      }
+
+      // Clear error message
+      clearErrorMessage();
+
+      // Re-render
+      render();
+    } catch (error) {
+      showErrorMessage(`Failed to reset: ${error.message}`);
     }
-    render();
   }
 
-  // Export public API
-  window.PlayerManager = {
-    init: init,
-    render: render,
-    removePlayer: removePlayer,
-    getGameState: getGameState,
-    getIsGameStarted: getIsGameStarted,
-    reset: reset
-  };
+  /**
+   * Check if PlayerManager is initialized
+   * @returns {boolean} True if initialized with valid GameState
+   */
+  function isInitialized() {
+    return initialized && gameState !== null;
+  }
 
+  // Public API
+  return {
+    init,
+    render,
+    reset,
+    isInitialized,
+  };
 })();
