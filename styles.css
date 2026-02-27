@@ -1,11 +1,9 @@
-/* Existing CSS Rules - Preserved from original file */
-
 /* Base Styles */
 body {
     font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
     margin: 0;
     padding: 0;
-    background-color: #f5f5f5;
 }
 
 header {
@@ -15,18 +13,16 @@ header {
     text-align: center;
 }
 
+main {
+    padding: 2rem;
+}
+
 footer {
     background-color: #333;
     color: white;
-    padding: 1rem;
     text-align: center;
+    padding: 1rem;
     margin-top: 2rem;
-}
-
-main {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
 }
 
 /* Form Styles */
@@ -37,60 +33,213 @@ form {
 }
 
 button {
-    cursor: pointer;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
+    padding: 0.5rem 1rem;
     background-color: #007bff;
     color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
     font-size: 1rem;
-    transition: background-color 0.3s ease;
 }
 
 button:hover {
     background-color: #0056b3;
 }
 
-/* Error Messages */
+button:active {
+    background-color: #004085;
+}
+
+/* Message Styles */
 .error-message {
     color: #e74c3c;
-    padding: 0.75rem;
+    padding: 1rem;
     background-color: #fadbd8;
-    border: 1px solid #e74c3c;
     border-radius: 4px;
-    margin-bottom: 1rem;
+    border-left: 4px solid #e74c3c;
 }
 
-/* Success Messages */
 .success-message {
-    color: #2ecc71;
-    padding: 0.75rem;
+    color: #27ae60;
+    padding: 1rem;
     background-color: #d5f4e6;
-    border: 1px solid #2ecc71;
     border-radius: 4px;
+    border-left: 4px solid #27ae60;
+}
+
+/* Round Progression Styles */
+.round-progression {
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.round-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1rem;
 }
 
-/* ===== NEW STYLES FOR TRICKS/BONUS FORM (Appended per TKT-mm4itwqu-76b93970) ===== */
+.round-counter {
+    flex: 1;
+}
 
-/* Tricks and Bonus Form Container */
+.round-counter h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.round-counter .hands-count {
+    margin: 0.5rem 0 0 0;
+    color: #666;
+}
+
+.phase-indicator {
+    text-align: right;
+}
+
+.phase-indicator p {
+    margin: 0;
+    color: #666;
+}
+
+.phase-status {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.next-round-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.next-round-button:hover {
+    background-color: #229954;
+}
+
+.next-round-button:active {
+    background-color: #1e8449;
+}
+
+.game-completion {
+    padding: 2rem;
+    background-color: #d5f4e6;
+    border-radius: 8px;
+    text-align: center;
+    color: #27ae60;
+}
+
+.game-completion h2 {
+    margin-top: 0;
+}
+
+/* Demo Section Styles */
+.demo-section {
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.demo-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.form-group input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+#demo-calculate-btn {
+    grid-column: 1 / -1;
+    padding: 0.75rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+#demo-calculate-btn:hover {
+    background-color: #2980b9;
+}
+
+#demo-calculate-btn:active {
+    background-color: #1f618d;
+}
+
+.demo-error {
+    color: #e74c3c;
+    padding: 1rem;
+    background-color: #fadbd8;
+    border-radius: 4px;
+    border-left: 4px solid #e74c3c;
+}
+
+.demo-results {
+    padding: 1rem;
+    background-color: #eaf2f8;
+    border-radius: 4px;
+    border-left: 4px solid #3498db;
+}
+
+.demo-results h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+#demo-results-content {
+    color: #34495e;
+}
+
+/* ===== NEW STYLES FOR TRICKS/BONUS FORM ===== */
+
 #tricks-bonus-form {
     padding: 1.5rem;
-    max-width: 600px;
+    max-width: 900px;
     margin: 0 auto;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Player Entries Container - Mobile-First Flex Column */
 .player-entries {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
-/* Individual Player Row - Flex Wrap for Responsive Layout */
 .player-entries > div {
     display: flex;
     flex-wrap: wrap;
@@ -102,108 +251,77 @@ button:hover {
     border: 1px solid #e0e0e0;
 }
 
-/* Player Name - Reference Only */
 .player-name {
     font-weight: bold;
-    font-size: 1.1rem;
-    color: #333;
-    min-width: 120px;
-}
-
-/* Player Bid - Reference Only with Muted Color */
-.player-bid {
-    color: #777;
-    font-size: 0.95rem;
-    min-width: 100px;
-}
-
-/* Tricks Input Field */
-.tricks-input {
-    width: 80px;
-    padding: 0.5rem;
-    border: 2px solid #ccc;
-    border-radius: 4px;
     font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    color: #333;
+    min-width: 150px;
 }
 
-/* Bonus Input Field */
+.player-bid {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.tricks-input,
 .bonus-input {
     width: 80px;
     padding: 0.5rem;
     border: 2px solid #ccc;
     border-radius: 4px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-size: 0.95rem;
+    text-align: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Input Validation - Invalid State */
-.tricks-input:invalid,
-.bonus-input:invalid {
+input:invalid {
     border-color: #e74c3c;
-    background-color: #fadbd8;
 }
 
-/* Input Validation - Valid State */
-.tricks-input:valid,
-.bonus-input:valid {
+input:valid {
     border-color: #2ecc71;
-    background-color: #d5f4e6;
 }
 
-/* Input Focus State with Visual Feedback */
-.tricks-input:focus,
-.bonus-input:focus {
+input:focus {
     outline: 2px solid #3498db;
     box-shadow: 0 0 4px rgba(52, 152, 219, 0.3);
-    border-color: #3498db;
 }
 
-/* Submit Scores Button */
 .submit-scores-btn {
-    padding: 0.75rem 1.5rem;
     background-color: #27ae60;
     color: white;
-    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    align-self: center;
     margin-top: 1rem;
-    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .submit-scores-btn:hover {
     background-color: #229954;
-    transform: translateY(-2px);
 }
 
 .submit-scores-btn:active {
     background-color: #1e8449;
-    transform: translateY(0);
 }
 
-/* Responsive Design - Desktop Layout (768px and above) */
 @media (min-width: 768px) {
-    #tricks-bonus-form {
-        max-width: 900px;
-    }
-
-    /* Desktop: Player rows layout horizontally */
-    .player-entries > div {
-        flex-wrap: nowrap;
+    .player-entries {
+        flex-direction: row;
+        flex-wrap: wrap;
         justify-content: flex-start;
     }
 
-    .player-name {
-        min-width: 150px;
+    .player-entries > div {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: 300px;
     }
 
-    .player-bid {
-        min-width: 120px;
-    }
-
-    .tricks-input,
-    .bonus-input {
-        width: 100px;
+    #tricks-bonus-form {
+        max-width: 1200px;
     }
 }
