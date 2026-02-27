@@ -1,5 +1,6 @@
 import PlayerManager from './PlayerManager.js';
 import GameState from './GameState.js';
+import MobileOptimizer from './mobile.js';
 
 /**
  * Main Application Controller
