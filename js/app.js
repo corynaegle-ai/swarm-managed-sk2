@@ -103,7 +103,9 @@ function setupFormHandlers() {
   const bidInput = document.getElementById('bid-input');
   const tricksInput = document.getElementById('tricks-input');
   const scorePreview = document.getElementById('score-preview');
+  const roundScoreDisplay = document.getElementById('round-score-display');
   const errorDisplay = document.getElementById('error-message');
+  const successDisplay = document.getElementById('success-message');
   
   if (!trickForm) return; // Form not present on page
   
@@ -116,6 +118,7 @@ function setupFormHandlers() {
     if (errorDisplay) {
       errorDisplay.textContent = '';
       errorDisplay.style.display = 'none';
+      errorDisplay.style.color = '';
     }
     
     // Don't show preview if fields empty
@@ -142,7 +145,8 @@ function setupFormHandlers() {
     // Calculate and display round score
     const scoreResult = calculateRoundScore(bid, tricks);
     if (scorePreview) {
-      scorePreview.textContent = `Round Score: ${scoreResult.roundScore} (Base: ${scoreResult.baseScore}, Bonus: ${scoreResult.bonusScore})`;
+      const bonusIndicator = scoreResult.metBid ? ' ✓ BONUS MET!' : '';
+      scorePreview.textContent = `Round Score: ${scoreResult.roundScore} (Base: ${scoreResult.baseScore}, Bonus: ${scoreResult.bonusScore})${bonusIndicator}`;
       scorePreview.style.display = 'block';
     }
   };
@@ -164,10 +168,15 @@ function setupFormHandlers() {
     const playerSelect = document.getElementById('player-select');
     const playerName = playerSelect?.value;
     
-    // Clear previous errors
+    // Clear previous messages
     if (errorDisplay) {
       errorDisplay.textContent = '';
       errorDisplay.style.display = 'none';
+      errorDisplay.style.color = '';
+    }
+    if (successDisplay) {
+      successDisplay.textContent = '';
+      successDisplay.style.display = 'none';
     }
     
     // Validate all inputs are present
@@ -175,6 +184,7 @@ function setupFormHandlers() {
       if (errorDisplay) {
         errorDisplay.textContent = 'Please fill in all fields';
         errorDisplay.style.display = 'block';
+        errorDisplay.style.color = '';
       }
       return;
     }
@@ -185,6 +195,7 @@ function setupFormHandlers() {
       if (errorDisplay) {
         errorDisplay.textContent = bidValidation.error;
         errorDisplay.style.display = 'block';
+        errorDisplay.style.color = '';
       }
       return;
     }
@@ -195,13 +206,31 @@ function setupFormHandlers() {
       if (errorDisplay) {
         errorDisplay.textContent = tricksValidation.error;
         errorDisplay.style.display = 'block';
+        errorDisplay.style.color = '';
       }
       return;
     }
     
-    // All validation passed - update player score
+    // All validation passed - calculate score first
     try {
-      const scoreResult = updatePlayerScore(playerName, bid, tricks);
+      const scoreResult = calculateRoundScore(bid, tricks);
+      
+      // Display round score BEFORE adding to total (Acceptance Criterion 6)
+      if (roundScoreDisplay) {
+        const bonusText = scoreResult.metBid ? ' (BONUS MET!)' : '';
+        roundScoreDisplay.innerHTML = `
+          <div style="padding: 10px; background-color: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">
+            <strong>Round ${gameState.currentRound} Score Preview:</strong><br>
+            Bid: ${bid}, Tricks: ${tricks}<br>
+            Base Score: ${scoreResult.baseScore}, Bonus: ${scoreResult.bonusScore}<br>
+            <strong>Round Score: ${scoreResult.roundScore}${bonusText}</strong>
+          </div>
+        `;
+        roundScoreDisplay.style.display = 'block';
+      }
+      
+      // Now update player score (adds to total)
+      updatePlayerScore(playerName, bid, tricks);
       
       // Display updated scores
       updateScoreDisplay(playerName, scoreResult);
@@ -217,18 +246,20 @@ function setupFormHandlers() {
       }
       
       // Show success message
-      if (errorDisplay) {
-        errorDisplay.textContent = `Score recorded for ${playerName}!`;
-        errorDisplay.style.color = 'green';
-        errorDisplay.style.display = 'block';
+      if (successDisplay) {
+        successDisplay.textContent = `Score recorded for ${playerName}! Round ${gameState.currentRound} score of ${scoreResult.roundScore} added to total.`;
+        successDisplay.style.display = 'block';
         setTimeout(() => {
-          errorDisplay.style.display = 'none';
+          if (successDisplay) {
+            successDisplay.style.display = 'none';
+          }
         }, 3000);
       }
     } catch (error) {
       if (errorDisplay) {
         errorDisplay.textContent = 'Error recording score: ' + error.message;
         errorDisplay.style.display = 'block';
+        errorDisplay.style.color = '';
       }
     }
   });
