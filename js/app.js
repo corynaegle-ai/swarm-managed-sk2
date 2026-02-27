@@ -1,0 +1,274 @@
+/**
+ * Tricks Game Application
+ * Main application logic for managing game state and UI interactions
+ */
+
+// Game state object
+const gameState = {
+  players: [],
+  currentRound: 1,
+  totalRounds: 13,
+  scores: {}
+};
+
+/**
+ * Initialize the game with players
+ * @param {array} playerNames - Array of player names
+ */
+function initializeGame(playerNames) {
+  gameState.players = playerNames;
+  gameState.currentRound = 1;
+  gameState.scores = {};
+  
+  // Initialize score tracking for each player
+  playerNames.forEach(player => {
+    gameState.scores[player] = {
+      roundScores: [],
+      totalScore: 0
+    };
+  });
+}
+
+/**
+ * Get current round number
+ * @returns {number} - Current round number
+ */
+function getCurrentRound() {
+  return gameState.currentRound;
+}
+
+/**
+ * Update player score for current round
+ * @param {string} playerName - Name of player
+ * @param {number} bid - Bid for the round
+ * @param {number} tricks - Tricks won in the round
+ */
+function updatePlayerScore(playerName, bid, tricks) {
+  if (!gameState.scores[playerName]) {
+    gameState.scores[playerName] = {
+      roundScores: [],
+      totalScore: 0
+    };
+  }
+  
+  // Calculate round score
+  const scoreResult = calculateRoundScore(bid, tricks);
+  
+  // Store round score
+  gameState.scores[playerName].roundScores.push({
+    round: gameState.currentRound,
+    bid: bid,
+    tricks: tricks,
+    score: scoreResult.roundScore
+  });
+  
+  // Update total score
+  gameState.scores[playerName].totalScore += scoreResult.roundScore;
+  
+  return scoreResult;
+}
+
+/**
+ * Get player's total score
+ * @param {string} playerName - Name of player
+ * @returns {number} - Total score for player
+ */
+function getPlayerTotalScore(playerName) {
+  return gameState.scores[playerName]?.totalScore || 0;
+}
+
+/**
+ * Get player's round scores
+ * @param {string} playerName - Name of player
+ * @returns {array} - Array of round scores
+ */
+function getPlayerRoundScores(playerName) {
+  return gameState.scores[playerName]?.roundScores || [];
+}
+
+/**
+ * Move to next round
+ */
+function advanceRound() {
+  if (gameState.currentRound < gameState.totalRounds) {
+    gameState.currentRound++;
+  }
+}
+
+/**
+ * Set up form event handlers
+ */
+function setupFormHandlers() {
+  const trickForm = document.getElementById('trick-form');
+  const bidInput = document.getElementById('bid-input');
+  const tricksInput = document.getElementById('tricks-input');
+  const scorePreview = document.getElementById('score-preview');
+  const errorDisplay = document.getElementById('error-message');
+  
+  if (!trickForm) return; // Form not present on page
+  
+  // Real-time score preview as user types
+  const updateScorePreview = () => {
+    const bid = bidInput?.value;
+    const tricks = tricksInput?.value;
+    
+    // Clear error message
+    if (errorDisplay) {
+      errorDisplay.textContent = '';
+      errorDisplay.style.display = 'none';
+    }
+    
+    // Don't show preview if fields empty
+    if (!bid || !tricks) {
+      if (scorePreview) {
+        scorePreview.textContent = '';
+        scorePreview.style.display = 'none';
+      }
+      return;
+    }
+    
+    // Validate inputs
+    const bidValidation = validateBid(bid, gameState.currentRound);
+    const tricksValidation = validateTricks(tricks, gameState.currentRound);
+    
+    if (!bidValidation.isValid || !tricksValidation.isValid) {
+      if (scorePreview) {
+        scorePreview.textContent = '';
+        scorePreview.style.display = 'none';
+      }
+      return;
+    }
+    
+    // Calculate and display round score
+    const scoreResult = calculateRoundScore(bid, tricks);
+    if (scorePreview) {
+      scorePreview.textContent = `Round Score: ${scoreResult.roundScore} (Base: ${scoreResult.baseScore}, Bonus: ${scoreResult.bonusScore})`;
+      scorePreview.style.display = 'block';
+    }
+  };
+  
+  // Add input event listeners for real-time preview
+  if (bidInput) {
+    bidInput.addEventListener('input', updateScorePreview);
+  }
+  if (tricksInput) {
+    tricksInput.addEventListener('input', updateScorePreview);
+  }
+  
+  // Form submission handler
+  trickForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    
+    const bid = bidInput?.value;
+    const tricks = tricksInput?.value;
+    const playerSelect = document.getElementById('player-select');
+    const playerName = playerSelect?.value;
+    
+    // Clear previous errors
+    if (errorDisplay) {
+      errorDisplay.textContent = '';
+      errorDisplay.style.display = 'none';
+    }
+    
+    // Validate all inputs are present
+    if (!playerName || !bid || !tricks) {
+      if (errorDisplay) {
+        errorDisplay.textContent = 'Please fill in all fields';
+        errorDisplay.style.display = 'block';
+      }
+      return;
+    }
+    
+    // Validate bid
+    const bidValidation = validateBid(bid, gameState.currentRound);
+    if (!bidValidation.isValid) {
+      if (errorDisplay) {
+        errorDisplay.textContent = bidValidation.error;
+        errorDisplay.style.display = 'block';
+      }
+      return;
+    }
+    
+    // Validate tricks
+    const tricksValidation = validateTricks(tricks, gameState.currentRound);
+    if (!tricksValidation.isValid) {
+      if (errorDisplay) {
+        errorDisplay.textContent = tricksValidation.error;
+        errorDisplay.style.display = 'block';
+      }
+      return;
+    }
+    
+    // All validation passed - update player score
+    try {
+      const scoreResult = updatePlayerScore(playerName, bid, tricks);
+      
+      // Display updated scores
+      updateScoreDisplay(playerName, scoreResult);
+      
+      // Clear form
+      bidInput.value = '';
+      tricksInput.value = '';
+      
+      // Clear score preview
+      if (scorePreview) {
+        scorePreview.textContent = '';
+        scorePreview.style.display = 'none';
+      }
+      
+      // Show success message
+      if (errorDisplay) {
+        errorDisplay.textContent = `Score recorded for ${playerName}!`;
+        errorDisplay.style.color = 'green';
+        errorDisplay.style.display = 'block';
+        setTimeout(() => {
+          errorDisplay.style.display = 'none';
+        }, 3000);
+      }
+    } catch (error) {
+      if (errorDisplay) {
+        errorDisplay.textContent = 'Error recording score: ' + error.message;
+        errorDisplay.style.display = 'block';
+      }
+    }
+  });
+}
+
+/**
+ * Update score display after submission
+ * @param {string} playerName - Name of player
+ * @param {object} scoreResult - Result from calculateRoundScore
+ */
+function updateScoreDisplay(playerName, scoreResult) {
+  // Update round score display
+  const roundScoreElement = document.getElementById(`round-score-${playerName}`);
+  if (roundScoreElement) {
+    roundScoreElement.textContent = scoreResult.roundScore;
+  }
+  
+  // Update total score display
+  const totalScoreElement = document.getElementById(`total-score-${playerName}`);
+  if (totalScoreElement) {
+    const totalScore = getPlayerTotalScore(playerName);
+    totalScoreElement.textContent = totalScore;
+  }
+  
+  // Update score breakdown display if available
+  const scoreBreakdownElement = document.getElementById(`score-breakdown-${playerName}`);
+  if (scoreBreakdownElement) {
+    const roundScores = getPlayerRoundScores(playerName);
+    const lastRound = roundScores[roundScores.length - 1];
+    scoreBreakdownElement.textContent = `Round ${lastRound.round}: Bid ${lastRound.bid}, Tricks ${lastRound.tricks} = ${lastRound.score}`;
+  }
+}
+
+/**
+ * Initialize application when DOM is ready
+ */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setupFormHandlers();
+  });
+} else {
+  setupFormHandlers();
+}
