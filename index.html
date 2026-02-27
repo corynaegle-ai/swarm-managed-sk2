@@ -31,6 +31,30 @@
                 </div>
             </section>
             <p>Welcome to the application. Ready for enhancement.</p>
+            
+            <section id="demo-section" class="demo-section">
+                <h2>Score Engine Demo</h2>
+                <form id="demo-form" class="demo-form">
+                    <div class="form-group">
+                        <label for="demo-bid">Bid:</label>
+                        <input type="number" id="demo-bid" name="bid" min="1" max="13" value="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="demo-tricks">Tricks Taken:</label>
+                        <input type="number" id="demo-tricks" name="tricks" min="0" max="13" value="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="demo-round">Round Number:</label>
+                        <input type="number" id="demo-round" name="round" min="1" max="10" value="1" required>
+                    </div>
+                    <button type="submit" id="demo-calculate-btn">Calculate Score</button>
+                </form>
+                <div id="demo-error" class="demo-error" style="display: none;"></div>
+                <div id="demo-results" class="demo-results" style="display: none;">
+                    <h3>Calculation Results</h3>
+                    <div id="demo-results-content"></div>
+                </div>
+            </section>
         </main>
         <footer>
             <p>&copy; 2024 Swarm Managed. All rights reserved.</p>
@@ -38,5 +62,6 @@
     </div>
     <script src="js/scoreboard.js"></script>
     <script src="app.js"></script>
+    <script type="module" src="js/demo.js"></script>
 </body>
 </html>
