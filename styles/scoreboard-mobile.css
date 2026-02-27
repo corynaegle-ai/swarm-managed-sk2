@@ -1,0 +1,124 @@
+/* Mobile-Optimized Scoreboard Styles */
+/* Responsive design for devices under 768px width */
+
+.scoreboard-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 80vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scoreboard-header {
+  position: sticky;
+  top: 0;
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #333;
+  padding: 12px;
+  z-index: 10;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.player-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  margin: 8px 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.score-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 15px;
+  margin: 5px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.score-button:active {
+  background-color: #0056b3;
+}
+
+/* Touch device adjustments */
+@media (hover: none) and (pointer: coarse) {
+  .score-button {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 12px 18px;
+    margin: 8px;
+  }
+}
+
+/* Compact player info layout */
+.player-name {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.player-score {
+  font-size: 18px;
+  color: #333;
+  margin: 6px 0;
+}
+
+.score-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+/* Stack layout for small screens */
+@media (max-width: 480px) {
+  .scoreboard-container {
+    max-height: 85vh;
+  }
+
+  .player-card {
+    padding: 10px;
+    margin: 6px 0;
+  }
+
+  .player-name {
+    font-size: 13px;
+  }
+
+  .player-score {
+    font-size: 20px;
+  }
+
+  .score-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 481px) and (max-width: 768px) {
+  .player-card {
+    padding: 14px;
+    margin: 10px 0;
+  }
+
+  .player-name {
+    font-size: 15px;
+  }
+
+  .player-score {
+    font-size: 20px;
+  }
+}
