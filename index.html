@@ -6,6 +6,7 @@
     <meta name="description" content="Swarm Managed SK2 - Vanilla JS Application">
     <title>Swarm Managed SK2</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/players.css">
 </head>
 <body>
     <div id="app">
@@ -13,13 +14,39 @@
             <h1>Swarm Managed SK2</h1>
         </header>
         <main>
-            <p>Welcome to the application. Ready for enhancement.</p>
+            <section class="player-management-section">
+                <h2>Player Management</h2>
+                
+                <form id="add-player-form">
+                    <input 
+                        type="text" 
+                        id="player-name-input" 
+                        placeholder="Enter player name..."
+                        autocomplete="off"
+                        maxlength="50"
+                        required
+                    >
+                    <button type="submit">Add Player</button>
+                </form>
+
+                <div id="player-count">
+                    <span class="count-valid">Players: 0</span>
+                    <span class="count-indicator">(2-8)</span>
+                </div>
+
+                <div id="player-list">
+                    <p class="player-list-empty">No players added yet. Add players to begin.</p>
+                </div>
+
+                <button id="start-game-btn" type="button" disabled>Start Game</button>
+            </section>
         </main>
         <footer>
             <p>&copy; 2024 Swarm Managed. All rights reserved.</p>
         </footer>
     </div>
     <script src="js/scoreboard.js"></script>
+    <script src="js/playerManager.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

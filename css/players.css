@@ -1,0 +1,272 @@
+/**
+ * Player Management Styles
+ * Responsive styling for player cards, forms, and related UI elements
+ */
+
+/* Player Management Section */
+.player-management-section {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 2rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.player-management-section h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+/* Add Player Form */
+#add-player-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+#player-name-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+#player-name-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.3);
+}
+
+#add-player-form button {
+  padding: 0.75rem 1.5rem;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+#add-player-form button:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+#add-player-form button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+#add-player-form button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Player List */
+#player-list {
+  margin-bottom: 2rem;
+}
+
+.player-list-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  background-color: #fff;
+  border-radius: 4px;
+}
+
+.player-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+/* Player Card */
+.player-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.player-card:hover {
+  border-color: #4CAF50;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.2);
+}
+
+.player-name {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+  word-break: break-word;
+  margin-right: 1rem;
+}
+
+.remove-player-btn {
+  padding: 0.5rem 1rem;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.remove-player-btn:hover:not(:disabled) {
+  background-color: #da190b;
+}
+
+.remove-player-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.remove-player-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Player Count Display */
+#player-count {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196F3;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+#player-count .count-valid {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+#player-count .count-invalid {
+  color: #c62828;
+  font-weight: 700;
+}
+
+#player-count .count-indicator {
+  color: #666;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Start Game Button */
+#start-game-btn {
+  padding: 1rem 2rem;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#start-game-btn:hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+#start-game-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+#start-game-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .player-management-section {
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+
+  #add-player-form {
+    flex-direction: column;
+  }
+
+  #player-name-input {
+    min-width: 100%;
+  }
+
+  #add-player-form button {
+    width: 100%;
+  }
+
+  .player-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .player-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .player-name {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .remove-player-btn {
+    width: 100%;
+  }
+
+  #player-count {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  #start-game-btn {
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .player-management-section {
+    padding: 1rem;
+  }
+
+  .player-management-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  #add-player-form {
+    margin-bottom: 1.5rem;
+  }
+
+  #player-count {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+}
