@@ -6,6 +6,7 @@
     <meta name="description" content="Swarm Managed SK2 - Vanilla JS Application">
     <title>Swarm Managed SK2</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles/rounds.css">
 </head>
 <body>
     <div id="app">
@@ -13,6 +14,22 @@
             <h1>Swarm Managed SK2</h1>
         </header>
         <main>
+            <section id="round-progression" class="round-progression">
+                <div class="round-info">
+                    <div class="round-counter">
+                        <h2>Round <span id="current-round">1</span></h2>
+                        <p class="hands-count">Hands: <span id="current-hands">1</span></p>
+                    </div>
+                    <div class="phase-indicator">
+                        <p>Current Phase: <span id="current-phase" class="phase-status">Dealing</span></p>
+                    </div>
+                </div>
+                <button id="next-round-btn" class="next-round-button" aria-label="Advance to next round">Next Round</button>
+                <div id="completion-message" class="game-completion" style="display: none;">
+                    <h2>Game Complete!</h2>
+                    <p>All 10 rounds have been completed.</p>
+                </div>
+            </section>
             <p>Welcome to the application. Ready for enhancement.</p>
         </main>
         <footer>
