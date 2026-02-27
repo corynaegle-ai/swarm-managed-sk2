@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1976d2">
+    <title>Scorekeeper</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="app-title">Scorekeeper</h1>
+            <button id="settingsBtn" class="settings-btn" aria-label="Settings">⚙️</button>
+        </header>
+
+        <main class="app-main">
+            <div class="scoreboard-wrapper">
+                <div id="scoreboard" class="scoreboard">
+                    <!-- Players dynamically inserted here -->
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <div class="input-group">
+                    <label for="pointsInput" class="input-label">Points to Add:</label>
+                    <div class="input-wrapper">
+                        <button class="quick-input-btn" data-value="-5" aria-label="Subtract 5 points">−5</button>
+                        <input 
+                            type="number" 
+                            id="pointsInput" 
+                            class="points-input" 
+                            value="1" 
+                            min="-999" 
+                            max="999"
+                            inputmode="numeric"
+                            aria-label="Points input field"
+                        >
+                        <button class="quick-input-btn" data-value="5" aria-label="Add 5 points">+5</button>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="addPlayerBtn" class="btn btn-primary" aria-label="Add new player">+ Add Player</button>
+                    <button id="resetBtn" class="btn btn-secondary" aria-label="Reset all scores">Reset Scores</button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p class="footer-text">Tap player card to add points</p>
+        </footer>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="closeSettingsBtn" class="modal-close" aria-label="Close settings">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="maxPlayers" class="setting-label">Max Players:</label>
+                    <input 
+                        type="number" 
+                        id="maxPlayers" 
+                        class="setting-input" 
+                        value="6" 
+                        min="2" 
+                        max="10"
+                        inputmode="numeric"
+                    >
+                </div>
+                <div class="setting-item">
+                    <label for="startingScore" class="setting-label">Starting Score:</label>
+                    <input 
+                        type="number" 
+                        id="startingScore" 
+                        class="setting-input" 
+                        value="0" 
+                        min="-999" 
+                        max="999"
+                        inputmode="numeric"
+                    >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettingsBtn" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
