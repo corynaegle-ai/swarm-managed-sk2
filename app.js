@@ -1,103 +1,111 @@
 /**
  * Swarm Managed SK2 - Main Application Entry Point
- * Initializes state and application logic
+ * Initializes the application state and exposes public API
  */
 
-(function() {
-    'use strict';
+(function () {
+  'use strict';
 
-    /**
-     * Application State
-     */
-    const appState = {
-        initialized: false,
-        version: '1.0.0',
-        timestamp: null,
-        user: null,
-        settings: {
-            theme: 'light',
-            language: 'en'
-        }
-    };
+  // Application state object - using let to allow reassignment
+  let appState = {
+    initialized: false,
+    version: '1.0.0',
+    features: [],
+    lastUpdated: null,
+  };
 
-    /**
-     * Initialize the application
-     */
-    function initializeApp() {
-        try {
-            // Set initialization timestamp
-            appState.timestamp = new Date().toISOString();
-            
-            // Log initialization
-            console.log('Initializing Swarm Managed SK2 v' + appState.version);
-            console.log('Initialization timestamp:', appState.timestamp);
-            
-            // Initialize DOM
-            initializeDOM();
-            
-            // Set initialization flag
-            appState.initialized = true;
-            
-            console.log('Application initialized successfully', appState);
-            return true;
-        } catch (error) {
-            console.error('Failed to initialize application:', error);
-            return false;
-        }
+  /**
+   * Initialize the application
+   * Sets up initial state and DOM bindings
+   * @returns {boolean} true if initialization was successful
+   */
+  function initialize() {
+    try {
+      const appContainer = document.getElementById('app');
+      if (!appContainer) {
+        console.error('Fatal: #app container not found in DOM');
+        return false;
+      }
+
+      // Mark as initialized
+      updateState({ initialized: true, lastUpdated: new Date().toISOString() });
+
+      console.log('Application initialized successfully', appState);
+      return true;
+    } catch (error) {
+      console.error('Initialization failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Update application state with new values
+   * Merges updates into current state
+   * @param {Object} updates - Partial state object to merge
+   * @returns {Object|null} Updated state object on success, null on failure
+   */
+  function updateState(updates) {
+    if (!updates || typeof updates !== 'object') {
+      console.error('updateState: updates must be a non-null object', updates);
+      return null;
     }
 
-    /**
-     * Initialize DOM elements and event listeners
-     */
-    function initializeDOM() {
-        const appElement = document.getElementById('app');
-        
-        if (!appElement) {
-            throw new Error('Required #app element not found in DOM');
-        }
-        
-        // DOM is ready, add any event listeners or manipulations here
-        console.log('DOM initialized successfully');
+    try {
+      appState = { ...appState, ...updates };
+      return appState;
+    } catch (error) {
+      console.error('updateState: Failed to update state', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get current application state (shallow copy)
+   * @returns {Object} Current state object
+   */
+  function getState() {
+    return { ...appState };
+  }
+
+  /**
+   * Register a feature in the application
+   * @param {string} featureName - Name of the feature
+   * @returns {boolean} true if feature was registered successfully
+   */
+  function registerFeature(featureName) {
+    if (typeof featureName !== 'string' || featureName.trim() === '') {
+      console.error('registerFeature: featureName must be a non-empty string');
+      return false;
     }
 
-    /**
-     * Update application state
-     * @param {Object} updates - State updates to merge
-     */
-    function updateState(updates) {
-        try {
-            appState = { ...appState, ...updates };
-            console.log('State updated:', appState);
-        } catch (error) {
-            console.error('Failed to update state:', error);
-        }
+    if (appState.features.includes(featureName)) {
+      console.warn(`registerFeature: Feature "${featureName}" already registered`);
+      return false;
     }
 
-    /**
-     * Get current application state
-     * @returns {Object} Current application state
-     */
-    function getState() {
-        return { ...appState };
-    }
+    const updatedState = updateState({
+      features: [...appState.features, featureName],
+      lastUpdated: new Date().toISOString(),
+    });
 
-    /**
-     * Execute when DOM is ready
-     */
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeApp);
-    } else {
-        initializeApp();
-    }
+    return updatedState !== null;
+  }
 
-    /**
-     * Expose public API
-     */
-    window.app = {
-        getState: getState,
-        updateState: updateState,
-        version: appState.version
-    };
+  /**
+   * Public API exposed on window.app
+   */
+  window.app = {
+    initialize,
+    updateState,
+    getState,
+    registerFeature,
+    version: '1.0.0',
+  };
 
-    console.log('Swarm Managed SK2 - Application ready for enhancement');
+  // Auto-initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+  } else {
+    initialize();
+  }
 })();
