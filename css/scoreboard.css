@@ -1,0 +1,344 @@
+/* Scoreboard Section */
+.scoreboard-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.scoreboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.scoreboard-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: #2c3e50;
+}
+
+/* Toggle Details Button */
+.toggle-details-btn {
+  padding: 0.75rem 1.5rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-details-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.toggle-details-btn:active {
+  transform: translateY(0);
+}
+
+/* Rankings Table */
+.scoreboard-rankings {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.rankings-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.rankings-table thead {
+  background-color: #34495e;
+  color: white;
+}
+
+.rankings-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-right: 1px solid #ecf0f1;
+}
+
+.rankings-table th:last-child {
+  border-right: none;
+}
+
+.rankings-table tbody tr {
+  border-bottom: 1px solid #ecf0f1;
+  transition: background-color 0.3s ease;
+}
+
+.rankings-table tbody tr:hover {
+  background-color: #ecf0f1;
+}
+
+.rankings-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.rankings-table td {
+  padding: 1rem;
+  color: #2c3e50;
+}
+
+.rankings-table td:first-child {
+  font-weight: 600;
+  color: #3498db;
+}
+
+/* Rank Badge Styling */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #3498db;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.rank-badge.first {
+  background-color: #f39c12;
+  box-shadow: 0 0 8px rgba(243, 156, 18, 0.4);
+}
+
+.rank-badge.second {
+  background-color: #95a5a6;
+}
+
+.rank-badge.third {
+  background-color: #cd7f32;
+}
+
+/* Current Round Indicator */
+.round-indicator {
+  text-align: center;
+}
+
+.current-round-highlight {
+  background-color: #fff3cd;
+  font-weight: 600;
+  color: #856404;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Round Breakdown Section */
+.round-breakdown {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #ecf0f1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.round-breakdown h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.75rem;
+}
+
+.round-details-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Individual Round Card */
+.round-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.round-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  border-color: #3498db;
+}
+
+.round-card-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.round-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.round-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.round-stat-label {
+  color: #555;
+  font-weight: 500;
+}
+
+.round-stat-value {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Score Display */
+.score-positive {
+  color: #27ae60;
+  font-weight: 700;
+}
+
+.score-negative {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+.score-zero {
+  color: #95a5a6;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .scoreboard-section {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+
+  .scoreboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .scoreboard-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .toggle-details-btn {
+    width: 100%;
+  }
+
+  .rankings-table {
+    font-size: 0.9rem;
+  }
+
+  .rankings-table th,
+  .rankings-table td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .rankings-table th:first-child,
+  .rankings-table td:first-child {
+    display: none;
+  }
+
+  .round-details-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .round-card {
+    padding: 1rem;
+  }
+
+  .round-stat {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .scoreboard-section {
+    padding: 0.75rem;
+  }
+
+  .scoreboard-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .rankings-table {
+    font-size: 0.85rem;
+  }
+
+  .rankings-table th,
+  .rankings-table td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .round-breakdown h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .round-card {
+    padding: 0.75rem;
+  }
+
+  .round-card-title {
+    font-size: 1rem;
+  }
+
+  .round-stat {
+    font-size: 0.85rem;
+  }
+}
+
+/* Smooth Transitions */
+.scoreboard-section * {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Visual Hierarchy for Current Phase */
+.current-phase-indicator {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #e8f4f8;
+  border-left: 4px solid #3498db;
+  border-radius: 0 4px 4px 0;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Animation for new scores */
+@keyframes scoreUpdate {
+  0% {
+    background-color: #fff3cd;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.score-updated {
+  animation: scoreUpdate 1s ease-out;
+}

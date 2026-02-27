@@ -7,6 +7,7 @@
     <title>Swarm Managed SK2</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="styles/rounds.css">
+    <link rel="stylesheet" href="css/scoreboard.css">
 </head>
 <body>
     <div id="app">
@@ -31,6 +32,36 @@
                 </div>
             </section>
             <p>Welcome to the application. Ready for enhancement.</p>
+            
+            <section id="scoreboard-section" class="scoreboard-section">
+                <div class="scoreboard-header">
+                    <h2>Scoreboard</h2>
+                    <button id="toggle-details-btn" class="toggle-details-btn" aria-label="Toggle round details">Show Details</button>
+                </div>
+                
+                <div class="scoreboard-rankings">
+                    <table class="rankings-table" role="table" aria-label="Player rankings">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Total Score</th>
+                                <th class="round-indicator">Current Round</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreboard-body">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="round-breakdown" class="round-breakdown" style="display: none;">
+                    <h3>Round-by-Round Breakdown</h3>
+                    <div id="round-details-container" class="round-details-container">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
             
             <section id="demo-section" class="demo-section">
                 <h2>Score Engine Demo</h2>
