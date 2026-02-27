@@ -3,44 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swarm Game</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Swarm Managed SK2 - A trick-taking card game scoreboard">
+    <title>Swarm Managed SK2</title>
+    <link rel="stylesheet" href="styles/rounds.css">
 </head>
 <body>
-    <main>
-        <h1>Swarm Game</h1>
-        
-        <div id="game-setup">
-            <h2>Game Setup</h2>
-            <p>Number of Players:</p>
-            <input type="number" id="numPlayers" min="1" value="4">
-            <button onclick="initializeGame()">Start Game</button>
-        </div>
+    <div id="app">
+        <header>
+            <h1>Swarm Managed SK2</h1>
+        </header>
 
-        <div id="game-board" style="display:none;">
-            <h2>Current Round</h2>
-            <p>Round: <span id="currentRound">1</span>/10</p>
-            <p>Trump Card: <span id="trumpCard">-</span></p>
-        </div>
+        <main>
+            <section id="round-progression">
+                <h2>Round Progression</h2>
+                <p>Round: <span id="round-number">1</span></p>
+            </section>
 
-        <section id="tricks-bonus-form">
-            <h2>Round Results</h2>
-            <form id="round-results-form">
-                <div class="player-entries">
-                    <template id="player-entry-template">
-                        <div class="player-row">
-                            <span class="player-name"></span>
-                            <span class="player-bid"></span>
+            <section id="tricks-bonus-form">
+                <h2>Round Results</h2>
+                <form id="round-results-form">
+                    <div class="player-entries">
+                        <div class="player-entry-row">
+                            <span class="player-name">Player 1</span>
+                            <span class="player-bid">Bid: 5</span>
                             <input type="number" name="tricks" min="0" class="tricks-input" required>
                             <input type="number" name="bonus" class="bonus-input" step="1">
                         </div>
-                    </template>
-                </div>
-                <button type="submit" class="submit-scores-btn">Calculate Scores</button>
-            </form>
-        </section>
-    </main>
+                    </div>
+                    <button type="submit" class="submit-scores-btn">Calculate Scores</button>
+                </form>
+            </section>
+        </main>
 
-    <script src="script.js"></script>
+        <footer>
+            <p>&copy; 2024 Swarm Managed SK2</p>
+        </footer>
+    </div>
+
+    <script src="js/scoreboard.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
