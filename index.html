@@ -3,44 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Swarm Managed SK2 - A trick-taking card game scoreboard">
-    <title>Swarm Managed SK2</title>
-    <link rel="stylesheet" href="styles/rounds.css">
+    <meta name="description" content="A strategy card game where players bid on tricks and earn points based on accuracy.">
+    <title>Tricks & Bonus Card Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h1>Swarm Managed SK2</h1>
-        </header>
+    <header>
+        <h1>Tricks & Bonus Card Game</h1>
+        <p>A strategy-based trick-taking card game</p>
+    </header>
 
-        <main>
-            <section id="round-progression">
-                <h2>Round Progression</h2>
-                <p>Round: <span id="round-number">1</span></p>
-            </section>
+    <section id="round-progression">
+        <h2>Game Progress</h2>
+        <div id="round-counter">Round: <span>1</span></div>
+        <div id="hands-count">Hands: <span>1</span></div>
+        <div id="phase-indicator">Phase: <span>Setup</span></div>
+        <button id="next-round-btn">Next Round</button>
+        <p id="completion-message" style="display: none;">Game Complete!</p>
+    </section>
 
-            <section id="tricks-bonus-form">
-                <h2>Round Results</h2>
-                <form id="round-results-form">
-                    <div class="player-entries">
-                        <div class="player-entry-row">
-                            <span class="player-name">Player 1</span>
-                            <span class="player-bid">Bid: 5</span>
-                            <input type="number" name="tricks" min="0" class="tricks-input" required>
-                            <input type="number" name="bonus" class="bonus-input" step="1">
-                        </div>
-                    </div>
-                    <button type="submit" class="submit-scores-btn">Calculate Scores</button>
-                </form>
-            </section>
-        </main>
+    <section id="demo-section">
+        <h2>Demo Section</h2>
+        <form id="demo-form">
+            <input type="text" placeholder="Enter name" required>
+            <button type="submit">Submit</button>
+        </form>
+    </section>
 
-        <footer>
-            <p>&copy; 2024 Swarm Managed SK2</p>
-        </footer>
-    </div>
+    <section id="tricks-bonus-form">
+        <h2>Round Results</h2>
+        <form id="round-results-form">
+            <div class="player-entries">
+                <div class="player-row">
+                    <span class="player-name">Player 1</span>
+                    <span class="player-bid">Bid: 3</span>
+                    <input type="number" name="tricks" min="0" class="tricks-input" required>
+                    <input type="number" name="bonus" class="bonus-input" step="1">
+                </div>
+            </div>
+            <button type="submit" class="submit-scores-btn">Calculate Scores</button>
+        </form>
+    </section>
 
-    <script src="js/scoreboard.js"></script>
-    <script src="app.js"></script>
+    <footer>
+        <p>&copy; 2024 Tricks & Bonus Card Game. All rights reserved.</p>
+    </footer>
+
+    <script type="module" src="js/demo.js"></script>
 </body>
 </html>
