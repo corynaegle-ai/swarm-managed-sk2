@@ -3,40 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Swarm Managed SK2 - Vanilla JS Application">
-    <title>Swarm Managed SK2</title>
+    <title>Swarm Game</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="styles/rounds.css">
 </head>
 <body>
-    <div id="app">
-        <header>
-            <h1>Swarm Managed SK2</h1>
-        </header>
-        <main>
-            <section id="round-progression" class="round-progression">
-                <div class="round-info">
-                    <div class="round-counter">
-                        <h2>Round <span id="current-round">1</span></h2>
-                        <p class="hands-count">Hands: <span id="current-hands">1</span></p>
-                    </div>
-                    <div class="phase-indicator">
-                        <p>Current Phase: <span id="current-phase" class="phase-status">Dealing</span></p>
-                    </div>
+    <main>
+        <h1>Swarm Game</h1>
+        
+        <div id="game-setup">
+            <h2>Game Setup</h2>
+            <p>Number of Players:</p>
+            <input type="number" id="numPlayers" min="1" value="4">
+            <button onclick="initializeGame()">Start Game</button>
+        </div>
+
+        <div id="game-board" style="display:none;">
+            <h2>Current Round</h2>
+            <p>Round: <span id="currentRound">1</span>/10</p>
+            <p>Trump Card: <span id="trumpCard">-</span></p>
+        </div>
+
+        <section id="tricks-bonus-form">
+            <h2>Round Results</h2>
+            <form id="round-results-form">
+                <div class="player-entries">
+                    <template id="player-entry-template">
+                        <div class="player-row">
+                            <span class="player-name"></span>
+                            <span class="player-bid"></span>
+                            <input type="number" name="tricks" min="0" class="tricks-input" required>
+                            <input type="number" name="bonus" class="bonus-input" step="1">
+                        </div>
+                    </template>
                 </div>
-                <button id="next-round-btn" class="next-round-button" aria-label="Advance to next round">Next Round</button>
-                <div id="completion-message" class="game-completion" style="display: none;">
-                    <h2>Game Complete!</h2>
-                    <p>All 10 rounds have been completed.</p>
-                </div>
-            </section>
-            <p>Welcome to the application. Ready for enhancement.</p>
-        </main>
-        <footer>
-            <p>&copy; 2024 Swarm Managed. All rights reserved.</p>
-        </footer>
-    </div>
-    <script src="js/scoreboard.js"></script>
-    <script src="app.js"></script>
+                <button type="submit" class="submit-scores-btn">Calculate Scores</button>
+            </form>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
