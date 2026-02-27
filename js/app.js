@@ -3,6 +3,7 @@ import GameState from './GameState.js';
 import MobileOptimizer from './mobile.js';
 import RoundManager from './rounds.js';
 import PhaseManager from './gamePhases.js';
+import { initializeScoreboard, updateScoreboard, addPlayerToScoreboard, removePlayerFromScoreboard } from './scoreboard.js';
 
 /**
  * Main Application Controller
@@ -73,6 +74,92 @@ class Application {
     // Round progression event
     if (this.nextRoundBtn) {
       this.nextRoundBtn.addEventListener('click', () => this.handleNextRound());
+    }
+
+    // Set up PlayerManager event listeners for scoreboard integration
+    this.setupPlayerManagerListeners();
+    
+    // Set up GameState event listeners for score changes
+    this.setupGameStateListeners();
+  }
+
+  /**
+   * Set up listeners on PlayerManager for player additions and removals
+   */
+  setupPlayerManagerListeners() {
+    try {
+      // Listen for player additions
+      this.playerManager.on('playerAdded', (player) => {
+        this.onPlayerAdded(player);
+      });
+      
+      // Listen for player removals
+      this.playerManager.on('playerRemoved', (playerId) => {
+        this.onPlayerRemoved(playerId);
+      });
+    } catch (error) {
+      console.error('Error setting up PlayerManager listeners:', error);
+    }
+  }
+
+  /**
+   * Set up listeners on GameState for score changes
+   */
+  setupGameStateListeners() {
+    try {
+      // Listen for score changes
+      if (this.gameState && typeof this.gameState.on === 'function') {
+        this.gameState.on('scoreChanged', () => {
+          this.onScoreChanged();
+        });
+      }
+    } catch (error) {
+      console.error('Error setting up GameState listeners:', error);
+    }
+  }
+
+  /**
+   * Handle player addition event from PlayerManager
+   */
+  onPlayerAdded(player) {
+    try {
+      // If game has started, update scoreboard with new player
+      if (this.gameStarted) {
+        addPlayerToScoreboard(player);
+        console.log(`Player ${player.name} added to scoreboard`);
+      }
+    } catch (error) {
+      console.error('Error adding player to scoreboard:', error);
+    }
+  }
+
+  /**
+   * Handle player removal event from PlayerManager
+   */
+  onPlayerRemoved(playerId) {
+    try {
+      // If game has started, update scoreboard to remove player
+      if (this.gameStarted) {
+        removePlayerFromScoreboard(playerId);
+        console.log(`Player ${playerId} removed from scoreboard`);
+      }
+    } catch (error) {
+      console.error('Error removing player from scoreboard:', error);
+    }
+  }
+
+  /**
+   * Handle score change event from GameState
+   */
+  onScoreChanged() {
+    try {
+      // Update scoreboard immediately when scores change
+      if (this.gameStarted && this.gameState) {
+        this.updateScoreboardDisplay();
+        console.log('Scoreboard updated due to score change');
+      }
+    } catch (error) {
+      this.displayError('Error updating scoreboard after score change: ' + error.message, 'game');
     }
   }
 
@@ -214,7 +301,26 @@ class Application {
     this.showPhase('game');
     this.initializeGameUI();
     this.initializeRoundAndPhaseManagers();
+    this.initializeScoreboardIntegration();
     console.log('Game started with', this.playerManager.getAllPlayers().length, 'players');
+  }
+
+  /**
+   * Initialize scoreboard with current game state
+   * Passes current round number to scoreboard initialization
+   */
+  initializeScoreboardIntegration() {
+    try {
+      const players = this.playerManager.getAllPlayers();
+      const currentRound = this.roundManager?.getCurrentRound()?.roundNumber || 1;
+      
+      // Initialize scoreboard with players and current round
+      initializeScoreboard(players, currentRound);
+      
+      console.log('Scoreboard initialized with ' + players.length + ' players at round ' + currentRound);
+    } catch (error) {
+      this.displayError('Error initializing scoreboard: ' + error.message, 'game');
+    }
   }
 
   /**
@@ -232,6 +338,7 @@ class Application {
       
       // Set up event listeners for state changes
       this.roundManager.on('roundChanged', (roundData) => this.onRoundChanged(roundData));
+      this.roundManager.on('roundCompleted', (roundData) => this.onRoundCompleted(roundData));
       this.phaseManager.on('phaseChanged', (phaseData) => this.onPhaseChanged(phaseData));
       
       // Update initial display
@@ -274,12 +381,32 @@ class Application {
       console.log('Round changed:', roundData);
       this.updateRoundAndPhaseDisplay();
       
+      // Update scoreboard with new round information
+      this.updateScoreboardDisplay();
+      
       // Advance phase manager to next phase if available
       if (this.phaseManager && this.phaseManager.hasNextPhase()) {
         this.phaseManager.nextPhase();
       }
     } catch (error) {
       console.error('Error handling round change:', error);
+    }
+  }
+
+  /**
+   * Called when round completes
+   * This is distinct from round change and ensures scoreboard updates on completion
+   */
+  onRoundCompleted(roundData) {
+    try {
+      console.log('Round completed:', roundData);
+      
+      // Update scoreboard after round completion
+      this.updateScoreboardDisplay();
+      
+      console.log('Scoreboard updated after round completion');
+    } catch (error) {
+      this.displayError('Error updating scoreboard after round completion: ' + error.message, 'game');
     }
   }
 
@@ -292,6 +419,21 @@ class Application {
       this.updateRoundAndPhaseDisplay();
     } catch (error) {
       console.error('Error handling phase change:', error);
+    }
+  }
+
+  /**
+   * Update scoreboard display with current game state
+   */
+  updateScoreboardDisplay() {
+    try {
+      const players = this.playerManager.getAllPlayers();
+      const currentRound = this.roundManager?.getCurrentRound()?.roundNumber || 1;
+      
+      // Update scoreboard with current game state
+      updateScoreboard(players, currentRound);
+    } catch (error) {
+      this.displayError('Error updating scoreboard display: ' + error.message, 'game');
     }
   }
 
@@ -333,6 +475,9 @@ class Application {
   handleGameCompletion() {
     try {
       console.log('Game completed!');
+      
+      // Update scoreboard one final time
+      this.updateScoreboardDisplay();
       
       // Hide next round button
       if (this.nextRoundBtn) {
