@@ -1,6 +1,8 @@
 import PlayerManager from './PlayerManager.js';
 import GameState from './GameState.js';
 import MobileOptimizer from './mobile.js';
+import RoundManager from './rounds.js';
+import PhaseManager from './gamePhases.js';
 
 /**
  * Main Application Controller
@@ -10,6 +12,8 @@ class Application {
   constructor() {
     this.playerManager = PlayerManager.getInstance();
     this.gameState = new GameState();
+    this.roundManager = null;
+    this.phaseManager = null;
     this.currentPhase = 'setup'; // 'setup' or 'game'
     this.gameStarted = false; // Flag to prevent return to setup
     
@@ -37,6 +41,13 @@ class Application {
     this.gameBoard = document.getElementById('game-board');
     this.gameErrorMessage = document.getElementById('game-error-message');
     this.playerStatsContainer = document.getElementById('player-stats');
+    
+    // Round progression elements
+    this.nextRoundBtn = document.getElementById('next-round-btn');
+    this.currentRoundDisplay = document.getElementById('current-round');
+    this.currentHandsDisplay = document.getElementById('current-hands');
+    this.currentPhaseDisplay = document.getElementById('current-phase');
+    this.completionMessage = document.getElementById('completion-message');
   }
 
   /**
@@ -57,6 +68,11 @@ class Application {
     
     if (this.startGameBtn) {
       this.startGameBtn.addEventListener('click', () => this.handleStartGame());
+    }
+    
+    // Round progression event
+    if (this.nextRoundBtn) {
+      this.nextRoundBtn.addEventListener('click', () => this.handleNextRound());
     }
   }
 
@@ -197,7 +213,139 @@ class Application {
     this.currentPhase = 'game';
     this.showPhase('game');
     this.initializeGameUI();
+    this.initializeRoundAndPhaseManagers();
     console.log('Game started with', this.playerManager.getAllPlayers().length, 'players');
+  }
+
+  /**
+   * Initialize RoundManager and PhaseManager after game starts
+   */
+  initializeRoundAndPhaseManagers() {
+    try {
+      const players = this.playerManager.getAllPlayers();
+      
+      // Initialize RoundManager with 10 rounds and players
+      this.roundManager = new RoundManager(10, players);
+      
+      // Initialize PhaseManager with game phases
+      this.phaseManager = new PhaseManager();
+      
+      // Set up event listeners for state changes
+      this.roundManager.on('roundChanged', (roundData) => this.onRoundChanged(roundData));
+      this.phaseManager.on('phaseChanged', (phaseData) => this.onPhaseChanged(phaseData));
+      
+      // Update initial display
+      this.updateRoundAndPhaseDisplay();
+      
+      console.log('Round and Phase managers initialized');
+    } catch (error) {
+      this.displayError('Error initializing round/phase managers: ' + error.message, 'game');
+    }
+  }
+
+  /**
+   * Handle next round button click
+   */
+  handleNextRound() {
+    try {
+      if (!this.roundManager) {
+        this.displayError('Round manager not initialized', 'game');
+        return;
+      }
+      
+      // Check if we can advance to next round
+      if (this.roundManager.hasNextRound()) {
+        this.roundManager.nextRound();
+        this.updateRoundAndPhaseDisplay();
+      } else {
+        // Game is complete
+        this.handleGameCompletion();
+      }
+    } catch (error) {
+      this.displayError('Error advancing to next round: ' + error.message, 'game');
+    }
+  }
+
+  /**
+   * Called when round changes
+   */
+  onRoundChanged(roundData) {
+    try {
+      console.log('Round changed:', roundData);
+      this.updateRoundAndPhaseDisplay();
+      
+      // Advance phase manager to next phase if available
+      if (this.phaseManager && this.phaseManager.hasNextPhase()) {
+        this.phaseManager.nextPhase();
+      }
+    } catch (error) {
+      console.error('Error handling round change:', error);
+    }
+  }
+
+  /**
+   * Called when phase changes
+   */
+  onPhaseChanged(phaseData) {
+    try {
+      console.log('Phase changed:', phaseData);
+      this.updateRoundAndPhaseDisplay();
+    } catch (error) {
+      console.error('Error handling phase change:', error);
+    }
+  }
+
+  /**
+   * Update round and phase display on UI
+   */
+  updateRoundAndPhaseDisplay() {
+    try {
+      if (!this.roundManager || !this.phaseManager) {
+        return;
+      }
+      
+      const currentRound = this.roundManager.getCurrentRound();
+      const currentPhase = this.phaseManager.getCurrentPhase();
+      
+      // Update round display
+      if (this.currentRoundDisplay) {
+        this.currentRoundDisplay.textContent = currentRound.roundNumber;
+      }
+      
+      // Update hands available display
+      if (this.currentHandsDisplay) {
+        this.currentHandsDisplay.textContent = currentRound.handsAvailable;
+      }
+      
+      // Update phase display
+      if (this.currentPhaseDisplay) {
+        this.currentPhaseDisplay.textContent = currentPhase.name || 'Unknown';
+        this.currentPhaseDisplay.className = `phase-status ${(currentPhase.name || 'unknown').toLowerCase()}`;
+      }
+    } catch (error) {
+      console.error('Error updating round/phase display:', error);
+    }
+  }
+
+  /**
+   * Handle game completion when all rounds are finished
+   */
+  handleGameCompletion() {
+    try {
+      console.log('Game completed!');
+      
+      // Hide next round button
+      if (this.nextRoundBtn) {
+        this.nextRoundBtn.style.display = 'none';
+      }
+      
+      // Show completion message
+      if (this.completionMessage) {
+        this.completionMessage.style.display = 'block';
+      }
+    } catch (error) {
+      this.displayError('Error handling game completion: ' + error.message, 'game');
+    }
   }
 
   /**
@@ -278,6 +426,20 @@ class Application {
    */
   isGameStarted() {
     return this.gameStarted;
+  }
+
+  /**
+   * Get round manager instance
+   */
+  getRoundManager() {
+    return this.roundManager;
+  }
+
+  /**
+   * Get phase manager instance
+   */
+  getPhaseManager() {
+    return this.phaseManager;
   }
 }
 
