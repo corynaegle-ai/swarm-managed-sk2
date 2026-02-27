@@ -209,8 +209,8 @@ input[type="number"]:invalid {
     display: none;
 }
 
-/* Show validation message for invalid inputs */
-input[type="number"]:invalid ~ .validation-message {
+/* Show validation message for invalid inputs (only after user interaction) */
+input[type="number"]:invalid:not(:placeholder-shown) ~ .validation-message {
     display: block;
 }
 
