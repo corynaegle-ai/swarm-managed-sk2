@@ -1,0 +1,90 @@
+.bidding-phase {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.bidding-phase h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.bidding-phase p {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #666;
+}
+
+.bid-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.bid-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bid-input-group label {
+  font-weight: bold;
+  color: #333;
+}
+
+.bid-input-group input {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.bid-input-group input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.bid-input-group input:invalid {
+  border-color: #dc3545;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.submit-bids-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-bids-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.submit-bids-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (min-width: 768px) {
+  .bid-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+}
