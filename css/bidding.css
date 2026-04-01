@@ -1,0 +1,382 @@
+/* Bid Collection Styling */
+
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #3498db;
+  --success-color: #27ae60;
+  --error-color: #e74c3c;
+  --warning-color: #f39c12;
+  --border-color: #bdc3c7;
+  --background-light: #ecf0f1;
+  --text-dark: #2c3e50;
+  --text-light: #7f8c8d;
+  --padding-base: 1rem;
+  --padding-lg: 1.5rem;
+  --padding-sm: 0.5rem;
+  --border-radius: 4px;
+  --transition-speed: 0.3s;
+}
+
+/* Container Styling */
+#bid-collection-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--padding-lg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Bid Form Section */
+#bid-form-section {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--padding-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#bid-form-section h2 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: var(--padding-lg);
+  font-size: 1.75rem;
+  border-bottom: 3px solid var(--secondary-color);
+  padding-bottom: var(--padding-base);
+}
+
+/* Round Information - Visual Hierarchy */
+#round-info {
+  background-color: var(--background-light);
+  border-left: 4px solid var(--secondary-color);
+  padding: var(--padding-base) var(--padding-lg);
+  margin-bottom: var(--padding-lg);
+  border-radius: var(--border-radius);
+  display: flex;
+  gap: var(--padding-lg);
+  flex-wrap: wrap;
+}
+
+#round-info p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+#round-info span {
+  font-weight: 700;
+  color: var(--secondary-color);
+  font-size: 1.2rem;
+}
+
+/* Bid Form */
+#bid-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding-lg);
+}
+
+/* Player Bids Container - Grid Layout */
+#player-bids-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--padding-base);
+  margin-bottom: var(--padding-base);
+}
+
+/* Individual Player Bid Input */
+.player-bid-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding-sm);
+}
+
+.player-bid-input label {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.player-bid-input input {
+  padding: var(--padding-base);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  color: var(--text-dark);
+  transition: all var(--transition-speed) ease;
+  background-color: white;
+}
+
+.player-bid-input input:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  background-color: #f9fafb;
+}
+
+.player-bid-input input:hover {
+  border-color: var(--secondary-color);
+}
+
+/* Valid input state */
+.player-bid-input input.valid {
+  border-color: var(--success-color);
+  background-color: #f0fdf4;
+}
+
+.player-bid-input input.valid:focus {
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+/* Error states - Red borders and text */
+.player-bid-input input.error {
+  border-color: var(--error-color);
+  background-color: #fdf2f2;
+}
+
+.player-bid-input input.error:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.player-bid-input .error-text {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: -var(--padding-sm);
+}
+
+/* Error Message Container */
+#bid-error-message {
+  background-color: #fdf2f2;
+  border: 2px solid var(--error-color);
+  color: var(--error-color);
+  padding: var(--padding-base) var(--padding-lg);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--padding-base);
+  font-weight: 500;
+  display: none;
+  animation: slideIn var(--transition-speed) ease;
+}
+
+#bid-error-message.show {
+  display: block;
+}
+
+/* Submit Button Styling */
+#submit-bids-btn {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: var(--padding-base) var(--padding-lg);
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 44px;
+}
+
+#submit-bids-btn:hover:not(:disabled) {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+#submit-bids-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+}
+
+/* Disabled state for submit button */
+#submit-bids-btn:disabled {
+  background-color: #bdc3c7;
+  color: #7f8c8d;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+#submit-bids-btn:disabled:hover {
+  transform: none;
+  background-color: #bdc3c7;
+}
+
+/* Success Message Section */
+#bid-success-message {
+  background-color: #f0fdf4;
+  border: 2px solid var(--success-color);
+  border-radius: var(--border-radius);
+  padding: var(--padding-lg);
+  text-align: center;
+  margin-top: var(--padding-lg);
+  animation: slideIn var(--transition-speed) ease;
+}
+
+#bid-success-message p {
+  color: var(--success-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 var(--padding-lg) 0;
+}
+
+/* Proceed Button */
+#proceed-btn {
+  background-color: var(--success-color);
+  color: white;
+  border: none;
+  padding: var(--padding-base) var(--padding-lg);
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 44px;
+}
+
+#proceed-btn:hover {
+  background-color: #229954;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+#proceed-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2);
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+  #bid-collection-container {
+    padding: var(--padding-base);
+  }
+
+  #bid-form-section {
+    padding: var(--padding-base);
+  }
+
+  #bid-form-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--padding-base);
+  }
+
+  #round-info {
+    flex-direction: column;
+    gap: var(--padding-base);
+    padding: var(--padding-base);
+  }
+
+  #round-info p {
+    font-size: 1rem;
+  }
+
+  /* Stack player bids in single column on mobile */
+  #player-bids-container {
+    grid-template-columns: 1fr;
+    gap: var(--padding-base);
+  }
+
+  .player-bid-input input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  #submit-bids-btn,
+  #proceed-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: var(--padding-base);
+  }
+
+  #bid-success-message {
+    padding: var(--padding-base);
+  }
+
+  #bid-success-message p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #bid-collection-container {
+    padding: var(--padding-sm);
+  }
+
+  #bid-form-section {
+    padding: var(--padding-base);
+    border-radius: 0;
+  }
+
+  #bid-form-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: var(--padding-base);
+    padding-bottom: var(--padding-sm);
+  }
+
+  #round-info {
+    padding: var(--padding-base);
+    border-left-width: 3px;
+  }
+
+  #round-info p {
+    font-size: 0.95rem;
+  }
+
+  #round-info span {
+    font-size: 1.1rem;
+  }
+
+  .player-bid-input label {
+    font-size: 0.9rem;
+  }
+
+  .player-bid-input input {
+    padding: var(--padding-sm) var(--padding-base);
+    font-size: 16px;
+  }
+
+  .player-bid-input .error-text {
+    font-size: 0.8rem;
+  }
+
+  #bid-error-message {
+    padding: var(--padding-sm) var(--padding-base);
+    font-size: 0.95rem;
+  }
+
+  #submit-bids-btn,
+  #proceed-btn {
+    font-size: 0.95rem;
+    padding: var(--padding-sm) var(--padding-base);
+  }
+
+  #bid-success-message {
+    padding: var(--padding-base);
+  }
+}
+
+/* Accessibility - Focus visible for keyboard navigation */
+#submit-bids-btn:focus-visible,
+#proceed-btn:focus-visible {
+  outline: 3px solid var(--secondary-color);
+  outline-offset: 2px;
+}
+
+.player-bid-input input:focus-visible {
+  outline: 3px solid var(--secondary-color);
+  outline-offset: 2px;
+  border-color: var(--secondary-color);
+}
